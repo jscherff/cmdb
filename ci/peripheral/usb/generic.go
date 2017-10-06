@@ -20,8 +20,7 @@ import (
 	`github.com/google/gousb`
 )
 
-// Generic decorates a gousb.Device with usb.Device and usb.Generic
-// Properties and API.
+// Generic decorates a gousb.Device with additional methods and properties.
 type Generic struct {
 	*Device
 }

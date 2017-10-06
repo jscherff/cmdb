@@ -52,6 +52,7 @@ const (
 	MarshalIndent		string	= "\t"
 )
 
+// Device decorates a gousb.Device with additional methods and properties.
 type Device struct {
 	*gousb.Device
 	Info *DeviceInfo

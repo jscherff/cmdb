@@ -26,33 +26,58 @@ const (
 	MagtekVID		uint16	= 0x0801
 	MagtekPID		uint16	= 0x0001
 
-	SureswipeKbPID		uint16	= 0x0001
-	MagnesafeKbPID		uint16	= 0x0001
-	SureswipeHidPID		uint16	= 0x0002
-	MagnesafeHidPID		uint16	= 0x0011
+	MagtekSureSwipeKbPID	uint16	= 0x0001
+	MagtekMagnesafeKbPID	uint16	= 0x0001
+	MagtekSureswipeHidPID	uint16	= 0x0002
+	MagtekMagnesafeHidPID	uint16	= 0x0011
 
-	CommandGetProp		uint8	= 0x00
-	CommandSetProp		uint8	= 0x01
-	CommandReset		uint8	= 0x02
+	magtekCmdGetProp	uint8	= 0x00
+	magtekCmdSetProp	uint8	= 0x01
+	magtekCmdReset		uint8	= 0x02
 
-	ResultSuccess		uint8	= 0x00
-	ResultFailure		uint8	= 0x01
-	ResultBadParam		uint8	= 0x02
+	magtekPropSoftwareID	uint8	= 0x00
+	magtekPropDeviceSN	uint8	= 0x01
+	magtekPropFactorySN	uint8	= 0x03
+	magtekPropProductVer	uint8	= 0x04
 
-	PropSoftwareID		uint8	= 0x00
-	PropDeviceSN		uint8	= 0x01
-	PropFactorySN		uint8	= 0x03
-	PropProductVer		uint8	= 0x04
+	magtekBufSizeSureswipe	int	= 24
+	magtekBufSizeMagnesafe	int	= 60
 
-	DefaultSNLength		int	= 7
+	magtekDefaultSNLength	int	= 7
 )
 
 var (
-	BufferSizes = []int{24, 60}
+	magtekBufferSizes = []int{24, 60}
 )
 
-// Magtek decorates a gousb.Device with usb.Device and usb.Magtek
-// Properties and API.
+type magtekRespCode uint8
+
+func (r magtekRespCode) Ok() bool {
+	return r == 0x00
+}
+
+func (r magtekRespCode) String() (s string) {
+
+	switch r {
+
+	case 0x00:
+		s = `Success`
+	case 0x01:
+		s = `Failure`
+	case 0x02:
+		s = `Bad Parameter`
+	case 0x05:
+		s = `Delayed`
+	case 0x07:
+		s = `Invalid Operation`
+	default:
+		s = `Unknown Result Code`
+	}
+
+	return s
+}
+
+// Magtek decorates a gousb.Device with additional methods and properties.
 type Magtek struct {
 	*Device
 }
@@ -71,6 +96,7 @@ func NewMagtek(gd *gousb.Device) (this *Magtek, err error) {
 	if gd == nil {
 		return this, err
 	}
+
 	if this.Info.BufferSize, err = this.GetBufferSize(); err != nil {
 		return this, err
 	}
@@ -84,8 +110,7 @@ func NewMagtek(gd *gousb.Device) (this *Magtek, err error) {
 		return this, err
 	}
 
-	this.Info.ObjectType	= reflect.TypeOf(this).String()
-	this.Info.FirmwareVer	= this.Info.SoftwareID
+	this.Info.ObjectType = reflect.TypeOf(this).String()
 
 	return this, err
 }
@@ -108,44 +133,44 @@ func (this *Magtek) Refresh() (err error) {
 	return err
 }
 
-// DeviceSN retrieves the device configurable serial number from NVRAM.
+// GetDeviceSN retrieves the device configurable serial number from NVRAM.
 func (this *Magtek) GetDeviceSN() (string, error) {
-	return this.getProperty(PropDeviceSN)
+	return this.getProperty(magtekPropDeviceSN)
 }
 
-// FactorySN retrieves the device factory serial number from NVRAM.
+// GetFactorySN retrieves the device factory serial number from NVRAM.
 func (this *Magtek) GetFactorySN() (string, error) {
-	s, err := this.getProperty(PropFactorySN)
+	s, err := this.getProperty(magtekPropFactorySN)
 	if len(s) <= 1 {s = ``}
 	return s, err
 }
 
-// SoftwareID retrieves the software ID of the device from NVRAM.
+// GetSoftwareID retrieves the software ID of the device from NVRAM.
 func (this *Magtek) GetSoftwareID() (string, error) {
-	return this.getProperty(PropSoftwareID)
+	return this.getProperty(magtekPropSoftwareID)
 }
 
-// ProductVer retrieves the product version of the device from NVRAM.
+// GetProductVer retrieves the product version of the device from NVRAM.
 func (this *Magtek) GetProductVer() (string, error) {
-	s, err := this.getProperty(PropProductVer)
+	s, err := this.getProperty(magtekPropProductVer)
 	if len(s) <= 1 {s = ``}
 	return s, err
 }
 
 // SetDeviceSN sets the device configurable serial number in NVRAM.
 func (this *Magtek) SetDeviceSN(s string) (error) {
-	return this.setProperty(PropDeviceSN, s)
+	return this.setProperty(magtekPropDeviceSN, s)
 }
 
 // EraseDeviceSN removes the device configurable serial number from NVRAM.
 func (this *Magtek) EraseDeviceSN() (error) {
-	return this.setProperty(PropDeviceSN, ``)
+	return this.setProperty(magtekPropDeviceSN, ``)
 }
 
 // SetFactorySN sets the device factory device serial number in NVRAM.
 // This will fail with result code 07 if serial number is already set.
 func (this *Magtek) SetFactorySN(s string) (error) {
-	return this.setProperty(PropFactorySN, s)
+	return this.setProperty(magtekPropFactorySN, s)
 }
 
 // CopyFactorySN copies 'length' characters from the device factory
@@ -173,7 +198,7 @@ func (this *Magtek) CopyFactorySN(n int) (err error) {
 func (this *Magtek) Reset() (err error) {
 
 	data := make([]byte, this.Info.BufferSize)
-	data[0] = CommandReset
+	data[0] = magtekCmdReset
 
 	if _, err = this.ControlSetReport(data); err != nil {
 		return err
@@ -181,8 +206,8 @@ func (this *Magtek) Reset() (err error) {
 	if _, err = this.ControlGetReport(data); err != nil {
 		return err
 	}
-	if data[0] > 0x00 {
-		return fmt.Errorf(`command error: %X`, data[0])
+	if rc := magtekRespCode(data[0]); !rc.Ok() {
+		return fmt.Errorf(`command error %d: %q`, rc, rc)
 	}
 
 	time.Sleep(5 * time.Second)
@@ -196,10 +221,10 @@ func (this *Magtek) Reset() (err error) {
 // error.
 func (this *Magtek) GetBufferSize() (n int, err error) {
 
-	for _, n = range BufferSizes {
+	for _, n = range magtekBufferSizes {
 
 		data := make([]byte, n)
-		copy(data, []byte{CommandGetProp, 0x01, PropSoftwareID})
+		copy(data, []byte{magtekCmdGetProp, 0x01, magtekPropSoftwareID})
 
 		if _, err = this.ControlSetReport(data); err != nil {
 			continue
@@ -218,7 +243,7 @@ func (this *Magtek) GetBufferSize() (n int, err error) {
 func (this *Magtek) getProperty(p byte) (s string, err error) {
 
 	data := make([]byte, this.Info.BufferSize)
-	copy(data, []byte{CommandGetProp, 0x01, p})
+	copy(data, []byte{magtekCmdGetProp, 0x01, p})
 
 	if _, err = this.ControlSetReport(data); err != nil {
 		return s, err
@@ -226,8 +251,8 @@ func (this *Magtek) getProperty(p byte) (s string, err error) {
 	if _, err = this.ControlGetReport(data); err != nil {
 		return s, err
 	}
-	if data[0] > 0x00 {
-		return s, fmt.Errorf(`command error: %X`, data[0])
+	if rc := magtekRespCode(data[0]); !rc.Ok() {
+		return s, fmt.Errorf(`command error %d: %q`, rc, rc)
 	}
 	if data[1] > 0x00 {
 		s = string(data[2:int(data[1])+2])
@@ -240,7 +265,7 @@ func (this *Magtek) getProperty(p byte) (s string, err error) {
 func (this *Magtek) setProperty(p byte, s string) (err error) {
 
 	data := make([]byte, this.Info.BufferSize)
-	copy(data[0:], []byte{CommandSetProp, byte(len(s)+1), p})
+	copy(data[0:], []byte{magtekCmdSetProp, byte(len(s)+1), p})
 	copy(data[3:], s)
 
 	if _, err = this.ControlSetReport(data); err != nil {
@@ -249,8 +274,8 @@ func (this *Magtek) setProperty(p byte, s string) (err error) {
 	if _, err = this.ControlGetReport(data); err != nil {
 		return err
 	}
-	if data[0] > 0x00 {
-		return fmt.Errorf(`command error: %X`, data[0])
+	if rc := magtekRespCode(data[0]); !rc.Ok() {
+		return fmt.Errorf(`command error %d: %q`, rc, rc)
 	}
 
 	this.Refresh()
