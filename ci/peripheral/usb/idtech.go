@@ -272,6 +272,7 @@ func (this *IDTech) wrapCommand(cin bytes.Buffer) (cout bytes.Buffer, err error)
 // sendCommand wraps a command with necessary codes and sends to the device.
 func (this *IDTech) sendCommand(cmd bytes.Buffer) (resp []byte, err error) {
 
+
 	if cmd, err = this.wrapCommand(cmd); err != nil {
 		return resp, err
 	}
@@ -279,7 +280,7 @@ func (this *IDTech) sendCommand(cmd bytes.Buffer) (resp []byte, err error) {
 	buf := make([]byte, idtechBufSizeSecureMag)
 
 	for {
-		if _, err = cmd.Read(buf); err == io.EOF {
+		if _, err := cmd.Read(buf); err == io.EOF {
 			break
 		}
 		if _, err = this.ControlSetReport(buf); err != nil {
@@ -290,16 +291,21 @@ func (this *IDTech) sendCommand(cmd bytes.Buffer) (resp []byte, err error) {
 	time.Sleep(1 * time.Second)
 
 	for {
-		if _, err = this.ControlGetReport(buf); err != nil {
+		n, err := this.ControlGetReport(buf)
+
+		if err != nil {
 			return resp, err
-		} else {
-			resp = append(resp, buf...)
 		}
-		if i := bytes.IndexByte(buf, idtechSymEndOfText); i > 0  {
+		if n == 0 {
 			break
 		}
+
+		resp = append(resp, buf...)
 	}
 
+	if len(resp) == 0 {
+		return resp, fmt.Errorf(`empty response`)
+	}
 	if rc := idtechRespCode(resp[0]); !rc.Ok() {
 		return resp, fmt.Errorf(`%s`, rc)
 	}
@@ -309,7 +315,7 @@ func (this *IDTech) sendCommand(cmd bytes.Buffer) (resp []byte, err error) {
 	resp = bytes.TrimSpace(resp[s:e])
 
 	switch resp[1] {
-	case 0x4e:
+	case idtechPropDeviceSN:
 		resp = resp[4:]
 	default:
 		resp = resp[1:]
