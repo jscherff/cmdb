@@ -66,9 +66,19 @@ import (
 //	<LRC>		0x--		XOR of Previous Data
 
 const (
+	// Exported
+
 	IDTechVID		uint16	= 0x0ACD
 	IDTechKbPID		uint16	= 0x2030
 	IDTechHidPID		uint16	= 0x2010
+
+	IDTechValBeepNone	string	= `0`
+	IDTechValBeepLowLong	string	= `1`
+	IDTechValBeepHighLong	string	= `2`
+	IDTechValBeepHighShort	string	= `3`
+	IDTechValBeepLowShort	string	= `4`
+
+	// Non-Exported
 
 	idtechSymStartOfText	uint8	= 0x02
 	idtechSymEndOfText	uint8	= 0x03
@@ -79,6 +89,7 @@ const (
 	idtechCmdVersion	uint8	= 0x39
 	idtechCmdReset		uint8	= 0x49
 
+	idtechPropBeep		uint8	= 0x11
 	idtechPropDeviceSN	uint8	= 0x4e
 	idtechPropFirmwareVer	uint8	= 0x22
 
@@ -91,25 +102,25 @@ func (r idtechRespCode) Ok() bool {
 	return r == 0x06
 }
 
-func (r idtechRespCode) String() (s string) {
+func (r idtechRespCode) String() (v string) {
 
 	switch r {
 
 	case 0x06:
-		s = `Acknowledge`
+		v = `Acknowledge`
 	case 0x15:
-		s = `Negative Acknowledge`
+		v = `Negative Acknowledge`
 	case 0x16:
-		s = `Unknown ID`
+		v = `Unknown ID`
 	case 0x17:
-		s = `Already in POS Mod`
+		v = `Already in POS Mod`
 	case 0xFD:
-		s = `Negative Acknowledge`
+		v = `Negative Acknowledge`
 	default:
-		s = `Unknown Result Code`
+		v = `Unknown Result Code`
 	}
 
-	return s
+	return v
 }
 
 // IDTech decorates a gousb.Device with additional methods and properties.
@@ -172,30 +183,35 @@ func (this *IDTech) EraseDeviceSN() (error) {
 }
 
 // SetDeviceSN sets the device configurable serial number in NVRAM.
-func (this *IDTech) SetDeviceSN(s string) (error) {
-	return this.setProperty(idtechPropDeviceSN, s)
+func (this *IDTech) SetDeviceSN(v string) (error) {
+	return this.setProperty(idtechPropDeviceSN, v)
 }
 
 // GetDeviceSN retrieves the device configurable serial number from NVRAM.
-func (this *IDTech) GetDeviceSN() (s string, err error) {
+func (this *IDTech) GetDeviceSN() (v string, err error) {
 	return this.getProperty(idtechPropDeviceSN)
 }
 
+// SetBeep sets the beep frequency and duration on the device.
+func (this *IDTech) SetBeep(v string) (err error) {
+	return this.setProperty(idtechPropBeep, v)
+}
+
 // GetProductVer retrieves the product version of the device from NVRAM.
-func (this *IDTech) GetProductVer() (s string, err error) {
+func (this *IDTech) GetProductVer() (v string, err error) {
 
 	var cmd bytes.Buffer
 
 	if err = cmd.WriteByte(idtechCmdVersion); err != nil {
-		return s, err
+		return v, err
 	}
-	if b, err := this.sendCommand(cmd); err != nil {
-		return s, err
+	if resp, err := this.sendCommand(cmd); err != nil {
+		return v, err
 	} else {
-		s = string(b)
+		v = string(bytes.TrimSpace(resp))
 	}
 
-	return s, err
+	return v, err
 }
 
 // Reset overides inherited Reset method with a low-level vendor reset.
@@ -203,7 +219,7 @@ func (this *IDTech) Reset() (err error) {
 
 	var cmd bytes.Buffer
 
-	if err = cmd.WriteByte(idtechCmdReset); err != nil {
+	if err := cmd.WriteByte(idtechCmdReset); err != nil {
 		return err
 	}
 
@@ -213,34 +229,41 @@ func (this *IDTech) Reset() (err error) {
 }
 
 // getProperty retrieves a property from device NVRAM using low-level commands.
-func (this *IDTech) getProperty(p byte) (s string, err error) {
+func (this *IDTech) getProperty(p byte) (v string, err error) {
 
 	var cmd bytes.Buffer
 
-	if _, err = cmd.Write([]byte{idtechSymReviewSetting, p}); err != nil {
-		return s, err
+	if _, err := cmd.Write([]byte{idtechSymReviewSetting, p}); err != nil {
+		return v, err
 	}
-	if b, err := this.sendCommand(cmd); err != nil {
-		return s, err
+	if resp, err := this.sendCommand(cmd); err != nil {
+		return v, err
 	} else {
-		s = string(b)
+		// Hack to accommodate inconsistent device API:
+		// sometimes get setting command returns function
+		// ID and value length, sometimes it returns just
+		// the value.
+		if len(resp) > 2 && resp[0] == p {
+			resp = resp[2:]
+		}
+		v = string(bytes.TrimSpace(resp))
 	}
 
-	return s, err
+	return v, err
 }
 
 // setProperty configures a property in device NVRAM using low-level commands.
-func (this *IDTech) setProperty(p byte, s string) (err error) {
+func (this *IDTech) setProperty(p byte, v string) (err error) {
 
 	var cmd bytes.Buffer
 
-	if _, err = cmd.Write([]byte{idtechSymSendSetting, p}); err != nil {
+	if _, err := cmd.Write([]byte{idtechSymSendSetting, p}); err != nil {
 		return err
 	}
-	if err = cmd.WriteByte(byte(len(s))); err != nil {
+	if err := cmd.WriteByte(byte(len(v))); err != nil {
 		return err
 	}
-	if _, err = cmd.WriteString(s); err != nil {
+	if _, err := cmd.WriteString(v); err != nil {
 		return err
 	}
 
@@ -303,22 +326,20 @@ func (this *IDTech) sendCommand(cmd bytes.Buffer) (resp []byte, err error) {
 		resp = append(resp, buf...)
 	}
 
+	resp = bytes.Trim(resp, "\x00")
+
 	if len(resp) == 0 {
-		return resp, fmt.Errorf(`empty response`)
+		return resp, fmt.Errorf(`no response`)
 	}
 	if rc := idtechRespCode(resp[0]); !rc.Ok() {
-		return resp, fmt.Errorf(`%s`, rc)
+		err = fmt.Errorf(`device command response %d: %q`, rc, rc)
 	}
 
-	s := bytes.IndexByte(resp, idtechSymStartOfText)
-	e := bytes.IndexByte(resp, idtechSymEndOfText)
-	resp = bytes.TrimSpace(resp[s:e])
+	st := bytes.IndexByte(resp, idtechSymStartOfText) + 1
+	et := bytes.IndexByte(resp, idtechSymEndOfText)
 
-	switch resp[1] {
-	case idtechPropDeviceSN:
-		resp = resp[4:]
-	default:
-		resp = resp[1:]
+	if et > st {
+		resp = resp[st:et]
 	}
 
 	return resp, err
