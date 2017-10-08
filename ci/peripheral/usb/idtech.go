@@ -152,6 +152,7 @@ func NewIDTech(gd *gousb.Device) (this *IDTech, err error) {
 		return this, err
 	}
 
+	this.Info.SoftwareID = this.Info.FirmwareVer
 	this.Info.ObjectType = reflect.TypeOf(this).String()
 
 	return this, err
@@ -167,7 +168,7 @@ func (this *IDTech) Refresh() (err error) {
 		return err
 	}
 
-	this.Info.SerialNumber	= this.Info.DeviceSN
+	this.Info.SerialNumber = this.Info.DeviceSN
 
 	return err
 }

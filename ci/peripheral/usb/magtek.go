@@ -114,6 +114,7 @@ func NewMagtek(gd *gousb.Device) (this *Magtek, err error) {
 		return this, err
 	}
 
+	this.Info.FirmwareVer = this.Info.SoftwareID
 	this.Info.ObjectType = reflect.TypeOf(this).String()
 
 	return this, err
@@ -132,7 +133,7 @@ func (this *Magtek) Refresh() (err error) {
 		return err
 	}
 
-	this.Info.SerialNumber	= this.Info.DeviceSN
+	this.Info.SerialNumber = this.Info.DeviceSN
 
 	return err
 }
