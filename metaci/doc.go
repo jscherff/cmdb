@@ -12,35 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package usb
-
-import (
-	`reflect`
-
-	`github.com/google/gousb`
-)
-
-// Generic decorates a gousb.Device with additional methods and properties.
-type Generic struct{
-	*Device
-}
-
-// NewGeneric instantiates a Generic wrapper for an existing gousb Device.
-func NewGeneric(gd *gousb.Device) (this *Generic, err error) {
-
-	d, err := NewDevice(gd)
-
-	if err != nil {
-		return this, err
-	}
-
-	this = &Generic{d}
-
-	if gd == nil {
-		return this, err
-	}
-
-	this.Info.ObjectType = reflect.TypeOf(this).String()
-
-	return this, err
-}
+package metaci

@@ -113,7 +113,7 @@ func (r idtechRespCode) String() (v string) {
 	case 0x16:
 		v = `Unknown ID`
 	case 0x17:
-		v = `Already in POS Mod`
+		v = `Already in POS Mode`
 	case 0xFD:
 		v = `Negative Acknowledge`
 	default:
