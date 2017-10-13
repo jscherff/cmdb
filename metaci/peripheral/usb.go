@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package usb
+package peripheral
 
 import (
 	`bufio`
@@ -127,7 +127,7 @@ func NewUsb(f string) (*Usb, error) {
 
 	} else {
 
-		if err := this.Load(usbMetaSourceUrl); err != nil {
+		if err := this.LoadUrl(usbMetaSourceUrl); err != nil {
 			return nil, err
 		}
 		if err := os.MkdirAll(filepath.Dir(f), usbMetaDirMode); err != nil {
