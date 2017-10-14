@@ -15,7 +15,7 @@
 package usb
 
 import (
-	`reflect`
+	`fmt`
 
 	`github.com/google/gousb`
 )
@@ -40,7 +40,7 @@ func NewGeneric(gd *gousb.Device) (this *Generic, err error) {
 		return this, err
 	}
 
-	this.Info.ObjectType = reflect.TypeOf(this).String()
+	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
 
 	return this, err
 }

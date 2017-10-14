@@ -15,10 +15,10 @@
 package usb
 
 import (
-	`os`
-	`reflect`
+	`fmt`
 
 	`github.com/google/gousb`
+	`github.com/jscherff/cmdb/metaci/peripheral/usb`
 )
 
 const (
@@ -47,39 +47,37 @@ const (
 
 	DeviceDescSize		int	= 18
 	ConfigDescSize		int	= 9
-
-	MarshalPrefix		string	= ""
-	MarshalIndent		string	= "\t"
 )
 
 // Device decorates a gousb.Device with additional methods and properties.
 type Device struct {
 	*gousb.Device
-	Info *DeviceInfo
+	Info *usb.DeviceInfo
 }
 
 // NewDevice instantiates a Device wrapper for an existing gousb Device.
 func NewDevice(gd *gousb.Device) (this *Device, err error) {
 
-	this = &Device{Device: gd, Info: &DeviceInfo{}}
+	this = &Device{Device: gd}
 
 	if gd == nil {
-		return this, err
+		this.Info = &usb.DeviceInfo{}
+		return this, nil
+	}
+	if this.Info, err = usb.NewDeviceInfo(gd.Desc); err != nil {
+		return nil, err
+	}
+	if this.Info.VendorName, err = this.Manufacturer(); err != nil {
+		return nil, err
+	}
+	if this.Info.ProductName, err = this.Product(); err != nil {
+		return nil, err
+	}
+	if this.Info.SerialNumber, err = this.SerialNumber(); err != nil {
+		return nil, err
 	}
 
-	this.Info.VendorID	= this.Desc.Vendor.String()
-	this.Info.ProductID	= this.Desc.Product.String()
-	this.Info.PortNumber	= this.Desc.Port
-	this.Info.BusNumber	= this.Desc.Bus
-	this.Info.BusAddress	= this.Desc.Address
-	this.Info.MaxPktSize	= this.Desc.MaxControlPacketSize
-	this.Info.USBSpec	= this.Desc.Spec.String()
-	this.Info.USBClass	= this.Desc.Class.String()
-	this.Info.USBSubclass	= this.Desc.SubClass.String()
-	this.Info.USBProtocol	= this.Desc.Protocol.String()
-	this.Info.DeviceSpeed	= this.Desc.Speed.String()
-	this.Info.DeviceVer	= this.Desc.Device.String()
-	this.Info.ObjectType	= reflect.TypeOf(this).String()
+	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
 
 	// this.Info.SoftwareID
 	// this.Info.FirmwareVer
@@ -89,19 +87,7 @@ func NewDevice(gd *gousb.Device) (this *Device, err error) {
 	// this.Info.FactorySN
 	// this.Info.DescriptorSN
 
-	if this.Info.VendorName, err = this.Manufacturer(); err != nil {
-		return this, err
-	}
-	if this.Info.ProductName, err = this.Product(); err != nil {
-		return this, err
-	}
-	if this.Info.SerialNumber, err = this.SerialNumber(); err != nil {
-		return this, err
-	}
-
-	this.Info.HostName, err = os.Hostname()
-
-	return this, err
+	return this, nil
 }
 
 // ID is a convenience method to retrieve the device serial number.
@@ -115,7 +101,7 @@ func (this *Device) VID() (string) {
 }
 
 // PID is a convenience method to retrieve the device product ID.
-func (this *Device) PID() (string) {
+func (this *Device) PID() (string) { 
 	return this.Info.ProductID
 }
 
@@ -130,7 +116,7 @@ func (this *Device) Type() (string) {
 }
 
 // GetInfo detaches and returns just the DeviceInfo object.
-func (this *Device) GetInfo() (*DeviceInfo) {
+func (this *Device) GetInfo() (*usb.DeviceInfo) {
 	return this.Info
 }
 

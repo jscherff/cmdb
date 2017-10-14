@@ -18,7 +18,6 @@ import (
 	`bytes`
 	`fmt`
 	`io`
-	`reflect`
 	`time`
 	`github.com/google/gousb`
 )
@@ -153,7 +152,7 @@ func NewIDTech(gd *gousb.Device) (this *IDTech, err error) {
 	}
 
 	this.Info.SoftwareID = this.Info.FirmwareVer
-	this.Info.ObjectType = reflect.TypeOf(this).String()
+	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
 
 	return this, err
 }

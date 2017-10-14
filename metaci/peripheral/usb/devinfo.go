@@ -17,8 +17,16 @@ package usb
 import (
 	`encoding/json`
 	`encoding/xml`
+	`fmt`
+	`os`
 
+	`github.com/google/gousb`
 	`github.com/jscherff/goutil`
+)
+
+const (
+	MarshalPrefix		string	= ""
+	MarshalIndent		string	= "\t"
 )
 
 type DeviceInfo struct {
@@ -40,7 +48,7 @@ type DeviceInfo struct {
 	MaxPktSize	int		`json:"max_pkt_size"  csv:"-" nvp:"-"`
 	USBSpec		string		`json:"usb_spec"      csv:"-" nvp:"-"`
 	USBClass	string		`json:"usb_class"     csv:"-" nvp:"-"`
-	USBSubclass	string		`json:"usb_subclass"  csv:"-" nvp:"-"`
+	USBSubClass	string		`json:"usb_subclass"  csv:"-" nvp:"-"`
 	USBProtocol	string		`json:"usb_protocol"  csv:"-" nvp:"-"`
 	DeviceSpeed	string		`json:"device_speed"  csv:"-" nvp:"-"`
 	DeviceVer	string		`json:"device_ver"    csv:"-" nvp:"-"`
@@ -60,6 +68,32 @@ type DeviceInfo struct {
 	Custom08	string		`json:"custom_08,omitempty" xml:",omitempty" csv:"-" nvp:"-"`
 	Custom09	string		`json:"custom_09,omitempty" xml:",omitempty" csv:"-" nvp:"-"`
 	Custom10	string		`json:"custom_10,omitempty" xml:",omitempty" csv:"-" nvp:"-"`
+}
+
+func NewDeviceInfo(desc *gousb.DeviceDesc) (this *DeviceInfo, err error) {
+
+	this = &DeviceInfo{
+		VendorID:	desc.Vendor.String(),
+		ProductID:	desc.Product.String(),
+		PortNumber:	desc.Port,
+		BusNumber:	desc.Bus,
+		BusAddress:	desc.Address,
+		MaxPktSize:	desc.MaxControlPacketSize,
+		USBSpec:	desc.Spec.String(),
+		USBClass:	desc.Class.String(),
+		USBSubClass:	desc.SubClass.String(),
+		USBProtocol:	desc.Protocol.String(),
+		DeviceSpeed:	desc.Speed.String(),
+		DeviceVer:	desc.Device.String(),
+	}
+
+	this.ObjectType = fmt.Sprintf(`%T`, this)
+
+	if this.HostName, err = os.Hostname(); err != nil {
+		return nil, err
+	}
+
+	return this, nil
 }
 
 // ID is a convenience method to retrieve the device serial number.

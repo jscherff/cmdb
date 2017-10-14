@@ -16,7 +16,6 @@ package usb
 
 import (
 	`fmt`
-	`reflect`
 	`time`
 
 	`github.com/google/gousb`
@@ -115,7 +114,7 @@ func NewMagtek(gd *gousb.Device) (this *Magtek, err error) {
 	}
 
 	this.Info.FirmwareVer = this.Info.SoftwareID
-	this.Info.ObjectType = reflect.TypeOf(this).String()
+	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
 
 	return this, err
 }

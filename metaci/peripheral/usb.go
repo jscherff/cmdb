@@ -44,7 +44,7 @@ var (
 	// usbClassRgx extracts the class IDs and descriptions from the source data.
 	classRgx = regexp.MustCompile(`^C\s+([0-9A-Fa-f]{2})\s+(.+)$`)
 
-	// usbSubclassRgx extracts the subclass IDs and descriptions from the source data.
+	// usbSubClassRgx extracts the subclass IDs and descriptions from the source data.
 	subclassRgx = regexp.MustCompile(`^\t([0-9A-Fa-f]{2})\s+(.+)$`)
 
 	// usbProtocolRgx extracts the protocol IDs and descriptions from the source data.
@@ -82,7 +82,7 @@ func (this *Product) String() string {
 // Class contains the name of the class and mappings for each subclass.
 type Class struct {
 	Name string
-	Subclass map[string]*Subclass
+	SubClass map[string]*SubClass
 }
 
 // String returns the name of the class.
@@ -90,14 +90,14 @@ func (this *Class) String() string {
 	return this.Name
 }
 
-// Subclass contains the name of the subclass and any associated protocols.
-type Subclass struct {
+// SubClass contains the name of the subclass and any associated protocols.
+type SubClass struct {
 	Name string
 	Protocol map[string]*Protocol
 }
 
-// String returns the name of the Subclass.
-func (this *Subclass) String() string {
+// String returns the name of the SubClass.
+func (this *SubClass) String() string {
 	return this.Name
 }
 
@@ -171,10 +171,10 @@ func (this *Usb) GetClass(cid string) (*Class, error) {
 	}
 }
 
-// GetSubclass returns the USB subclass associated with a subclass ID.
-func (this *Class) GetSubclass(sid string) (*Subclass, error) {
+// GetSubClass returns the USB subclass associated with a subclass ID.
+func (this *Class) GetSubClass(sid string) (*SubClass, error) {
 
-	if s, ok := this.Subclass[sid]; !ok {
+	if s, ok := this.SubClass[sid]; !ok {
 		return nil, fmt.Errorf(`subclass %q not found`, sid)
 	} else {
 		return s, nil
@@ -182,7 +182,7 @@ func (this *Class) GetSubclass(sid string) (*Subclass, error) {
 }
 
 // GetProtocol returns the USB protocol associated with a protocol ID.
-func (this *Subclass) GetProtocol(pid string) (*Protocol, error) {
+func (this *SubClass) GetProtocol(pid string) (*Protocol, error) {
 
 	if p, ok := this.Protocol[pid]; !ok {
 		return nil, fmt.Errorf(`protocol %q not found`, pid)
@@ -199,7 +199,7 @@ func (this *Usb) LoadUrl(url string) error {
 	var (
 		vendor   *Vendor
 		class    *Class
-		subclass *Subclass
+		subclass *SubClass
 	)
 
 	resp, err := http.Get(url)
@@ -252,12 +252,12 @@ func (this *Usb) LoadUrl(url string) error {
 			if class == nil {
 				return fmt.Errorf(`subclass with no class`)
 			}
-			if class.Subclass == nil {
-				class.Subclass = make(map[string]*Subclass)
+			if class.SubClass == nil {
+				class.SubClass = make(map[string]*SubClass)
 			}
 
-			subclass = &Subclass{Name: matches[2]}
-			class.Subclass[matches[1]] = subclass
+			subclass = &SubClass{Name: matches[2]}
+			class.SubClass[matches[1]] = subclass
 			continue
 		}
 
