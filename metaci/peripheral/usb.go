@@ -119,7 +119,7 @@ func NewUsb(f string) (*Usb, error) {
 		make(map[string]*Class),
 	}
 
-	if _, err := os.Stat(f); os.IsExist(err) {
+	if _, err := os.Stat(f); err == nil {
 
 		if err := this.Load(f); err != nil {
 			return nil, err
