@@ -60,11 +60,7 @@ func NewDevice(gd *gousb.Device) (this *Device, err error) {
 
 	this = &Device{Device: gd}
 
-	if gd == nil {
-		this.Info = &usb.DeviceInfo{}
-		return this, nil
-	}
-	if this.Info, err = usb.NewDeviceInfo(gd.Desc); err != nil {
+	if this.Info, err = usb.NewDeviceInfo(this.Desc); err != nil {
 		return nil, err
 	}
 	if this.Info.VendorName, err = this.Manufacturer(); err != nil {
@@ -79,13 +75,33 @@ func NewDevice(gd *gousb.Device) (this *Device, err error) {
 
 	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
 
-	// this.Info.SoftwareID
-	// this.Info.FirmwareVer
-	// this.Info.ProductVer
-	// this.Info.BufferSize
-	// this.Info.DeviceSN
-	// this.Info.FactorySN
-	// this.Info.DescriptorSN
+	return this, nil
+}
+
+// NilDevice instantiates a Device wrapper for an empty gousb Device.
+func NilDevice() (this *Device, err error) {
+
+	this = &Device{Device: &gousb.Device{}}
+
+	if this.Info, err = usb.NilDeviceInfo(); err != nil {
+		return nil, err
+	}
+
+	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
+
+	return this, nil
+}
+
+// NewDeviceFromDesc instantiates a new Device from a gousb DeviceDesc.
+func NewDeviceFromDesc(gdd *gousb.DeviceDesc) (this *Device, err error) {
+
+	this = &Device{Device: &gousb.Device{Desc: gdd}}
+
+	if this.Info, err = usb.NewDeviceInfo(this.Desc); err != nil {
+		return nil, err
+	}
+
+	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
 
 	return this, nil
 }
@@ -101,7 +117,7 @@ func (this *Device) VID() (string) {
 }
 
 // PID is a convenience method to retrieve the device product ID.
-func (this *Device) PID() (string) { 
+func (this *Device) PID() (string) {
 	return this.Info.ProductID
 }
 

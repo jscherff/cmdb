@@ -70,6 +70,7 @@ type DeviceInfo struct {
 	Custom10	string		`json:"custom_10,omitempty" xml:",omitempty" csv:"-" nvp:"-"`
 }
 
+// NewDeviceInfo instantiates a DeviceInfo object.
 func NewDeviceInfo(desc *gousb.DeviceDesc) (this *DeviceInfo, err error) {
 
 	this = &DeviceInfo{
@@ -87,6 +88,19 @@ func NewDeviceInfo(desc *gousb.DeviceDesc) (this *DeviceInfo, err error) {
 		DeviceVer:	desc.Device.String(),
 	}
 
+	this.ObjectType = fmt.Sprintf(`%T`, this)
+
+	if this.HostName, err = os.Hostname(); err != nil {
+		return nil, err
+	}
+
+	return this, nil
+}
+
+// NilDeviceInfo instantiates an empty DeviceInfo object.
+func NilDeviceInfo() (this *DeviceInfo, err error) {
+
+	this = &DeviceInfo{}
 	this.ObjectType = fmt.Sprintf(`%T`, this)
 
 	if this.HostName, err = os.Hostname(); err != nil {
