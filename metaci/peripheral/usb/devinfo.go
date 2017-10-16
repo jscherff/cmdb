@@ -73,34 +73,25 @@ type DeviceInfo struct {
 // NewDeviceInfo instantiates a DeviceInfo object.
 func NewDeviceInfo(desc *gousb.DeviceDesc) (this *DeviceInfo, err error) {
 
-	this = &DeviceInfo{
-		VendorID:	desc.Vendor.String(),
-		ProductID:	desc.Product.String(),
-		PortNumber:	desc.Port,
-		BusNumber:	desc.Bus,
-		BusAddress:	desc.Address,
-		MaxPktSize:	desc.MaxControlPacketSize,
-		USBSpec:	desc.Spec.String(),
-		USBClass:	desc.Class.String(),
-		USBSubClass:	desc.SubClass.String(),
-		USBProtocol:	desc.Protocol.String(),
-		DeviceSpeed:	desc.Speed.String(),
-		DeviceVer:	desc.Device.String(),
+	if desc != nil {
+		this = &DeviceInfo{
+			VendorID:	desc.Vendor.String(),
+			ProductID:	desc.Product.String(),
+			PortNumber:	desc.Port,
+			BusNumber:	desc.Bus,
+			BusAddress:	desc.Address,
+			MaxPktSize:	desc.MaxControlPacketSize,
+			USBSpec:	desc.Spec.String(),
+			USBClass:	desc.Class.String(),
+			USBSubClass:	desc.SubClass.String(),
+			USBProtocol:	desc.Protocol.String(),
+			DeviceSpeed:	desc.Speed.String(),
+			DeviceVer:	desc.Device.String(),
+		}
+	} else {
+		this = &DeviceInfo{}
 	}
 
-	this.ObjectType = fmt.Sprintf(`%T`, this)
-
-	if this.HostName, err = os.Hostname(); err != nil {
-		return nil, err
-	}
-
-	return this, nil
-}
-
-// NilDeviceInfo instantiates an empty DeviceInfo object.
-func NilDeviceInfo() (this *DeviceInfo, err error) {
-
-	this = &DeviceInfo{}
 	this.ObjectType = fmt.Sprintf(`%T`, this)
 
 	if this.HostName, err = os.Hostname(); err != nil {

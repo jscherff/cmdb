@@ -55,50 +55,45 @@ type Device struct {
 	Info *usb.DeviceInfo
 }
 
-// NewDevice instantiates a Device wrapper for an existing gousb Device.
-func NewDevice(gd *gousb.Device) (this *Device, err error) {
+// NewDevice instantiates a Device wrapper for a gousb Device.
+func NewDevice(t interface{}) (this *Device, err error) {
 
-	this = &Device{Device: gd}
+	if t == nil {
 
-	if this.Info, err = usb.NewDeviceInfo(this.Desc); err != nil {
-		return nil, err
-	}
-	if this.Info.VendorName, err = this.Manufacturer(); err != nil {
-		return nil, err
-	}
-	if this.Info.ProductName, err = this.Product(); err != nil {
-		return nil, err
-	}
-	if this.Info.SerialNumber, err = this.SerialNumber(); err != nil {
-		return nil, err
-	}
+		this = &Device{Device: &gousb.Device{Desc: nil}}
 
-	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
+		if this.Info, err = usb.NewDeviceInfo(this.Desc); err != nil {
+			return nil, err
+		}
 
-	return this, nil
-}
+	} else if obj, ok := t.(*gousb.Device); ok {
 
-// NilDevice instantiates a Device wrapper for an empty gousb Device.
-func NilDevice() (this *Device, err error) {
+		this = &Device{Device: obj}
 
-	this = &Device{Device: &gousb.Device{}}
+		if this.Info, err = usb.NewDeviceInfo(this.Desc); err != nil {
+			return nil, err
+		}
+		if this.Info.VendorName, err = this.Manufacturer(); err != nil {
+			return nil, err
+		}
+		if this.Info.ProductName, err = this.Product(); err != nil {
+			return nil, err
+		}
+		if this.Info.SerialNumber, err = this.SerialNumber(); err != nil {
+			return nil, err
+		}
 
-	if this.Info, err = usb.NilDeviceInfo(); err != nil {
-		return nil, err
-	}
+	} else if obj, ok := t.(*gousb.DeviceDesc); ok {
 
-	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
+		this = &Device{Device: &gousb.Device{Desc: obj}}
 
-	return this, nil
-}
+		if this.Info, err = usb.NewDeviceInfo(this.Desc); err != nil {
+			return nil, err
+		}
 
-// NewDeviceFromDesc instantiates a new Device from a gousb DeviceDesc.
-func NewDeviceFromDesc(gdd *gousb.DeviceDesc) (this *Device, err error) {
+	} else {
 
-	this = &Device{Device: &gousb.Device{Desc: gdd}}
-
-	if this.Info, err = usb.NewDeviceInfo(this.Desc); err != nil {
-		return nil, err
+		return nil, fmt.Errorf(`unsupported base object %T`, t)
 	}
 
 	this.Info.ObjectType = fmt.Sprintf(`%T`, this)

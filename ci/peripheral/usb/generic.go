@@ -28,19 +28,13 @@ type Generic struct{
 // NewGeneric instantiates a Generic wrapper for an existing gousb Device.
 func NewGeneric(gd *gousb.Device) (this *Generic, err error) {
 
-	d, err := NewDevice(gd)
-
-	if err != nil {
-		return this, err
-	}
-
-	this = &Generic{d}
-
-	if gd == nil {
-		return this, err
+	if d, err := NewDevice(gd); err != nil {
+		return nil, err
+	} else {
+		this = &Generic{d}
 	}
 
 	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
 
-	return this, err
+	return this, nil
 }
