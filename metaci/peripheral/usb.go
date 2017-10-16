@@ -29,6 +29,8 @@ const (
 	usbMetaDirMode = 0755
 	usbMetaFileMode = 0644
 	usbMetaSourceUrl = `http://www.linux-usb.org/usb.ids`
+	marshalPrefix = ""
+	marshalIndent = "\t"
 )
 
 var (
@@ -44,8 +46,8 @@ var (
 	// usbClassRgx extracts the class IDs and descriptions from the source data.
 	classRgx = regexp.MustCompile(`^C\s+([0-9A-Fa-f]{2})\s+(.+)$`)
 
-	// usbSubClassRgx extracts the subclass IDs and descriptions from the source data.
-	subclassRgx = regexp.MustCompile(`^\t([0-9A-Fa-f]{2})\s+(.+)$`)
+	// usbSubClassRgx extracts the subClass IDs and descriptions from the source data.
+	subClassRgx = regexp.MustCompile(`^\t([0-9A-Fa-f]{2})\s+(.+)$`)
 
 	// usbProtocolRgx extracts the protocol IDs and descriptions from the source data.
 	protocolRgx = regexp.MustCompile(`^\t\t([0-9A-Fa-f]{2})\s+(.+)$`)
@@ -54,6 +56,7 @@ var (
 // Usb contains all known information USB this.Vendors, products, this.Classes,
 // subthis.Classes, and protocols.
 type Usb struct {
+	Source string
 	Vendors map[string]*Vendor
 	Classes map[string]*Class
 }
@@ -79,7 +82,7 @@ func (this *Product) String() string {
 	return this.Name
 }
 
-// Class contains the name of the class and mappings for each subclass.
+// Class contains the name of the class and mappings for each subClass.
 type Class struct {
 	Name string
 	SubClass map[string]*SubClass
@@ -90,7 +93,7 @@ func (this *Class) String() string {
 	return this.Name
 }
 
-// SubClass contains the name of the subclass and any associated protocols.
+// SubClass contains the name of the subClass and any associated protocols.
 type SubClass struct {
 	Name string
 	Protocol map[string]*Protocol
@@ -112,31 +115,33 @@ func (this *Protocol) String() string {
 }
 
 // NewUsb creates a new instance of Usb with empty vendor/class maps.
-func NewUsb(f string) (*Usb, error) {
+func NewUsb(cf string) (*Usb, error) {
 
 	this := &Usb{
-		make(map[string]*Vendor),
-		make(map[string]*Class),
+		Source: usbMetaSourceUrl, // Default
+		Vendors: make(map[string]*Vendor),
+		Classes: make(map[string]*Class),
 	}
 
-	if _, err := os.Stat(f); err == nil {
+	if _, err := os.Stat(cf); err != nil {
 
-		if err := this.Load(f); err != nil {
+		if err := this.LoadUrl(usbMetaSourceUrl); err != nil {
+			return nil, err
+		}
+		if err := os.MkdirAll(filepath.Dir(cf), usbMetaDirMode); err != nil {
+			return nil, err
+		}
+		if err := this.Save(cf); err != nil {
 			return nil, err
 		}
 
 	} else {
 
-		if err := this.LoadUrl(usbMetaSourceUrl); err != nil {
-			return nil, err
-		}
-		if err := os.MkdirAll(filepath.Dir(f), usbMetaDirMode); err != nil {
-			return nil, err
-		}
-		if err = this.Save(f); err != nil {
+		if err := this.Load(cf); err != nil {
 			return nil, err
 		}
 	}
+
 
 	return this, nil
 }
@@ -171,11 +176,11 @@ func (this *Usb) GetClass(cid string) (*Class, error) {
 	}
 }
 
-// GetSubClass returns the USB subclass associated with a subclass ID.
+// GetSubClass returns the USB subClass associated with a subClass ID.
 func (this *Class) GetSubClass(sid string) (*SubClass, error) {
 
 	if s, ok := this.SubClass[sid]; !ok {
-		return nil, fmt.Errorf(`subclass %q not found`, sid)
+		return nil, fmt.Errorf(`subClass %q not found`, sid)
 	} else {
 		return s, nil
 	}
@@ -191,15 +196,18 @@ func (this *SubClass) GetProtocol(pid string) (*Protocol, error) {
 	}
 }
 
-// LoadUrl reads vendor, product, class, subclass, and protocol information
+// LoadUrl reads vendor, product, class, subClass, and protocol information
 // line-by-line from an io.Reader source and populates data structures for
 // use by the application.
 func (this *Usb) LoadUrl(url string) error {
 
+	vendors := make(map[string]*Vendor)
+	classes := make(map[string]*Class)
+
 	var (
 		vendor   *Vendor
 		class    *Class
-		subclass *SubClass
+		subClass *SubClass
 	)
 
 	resp, err := http.Get(url)
@@ -230,45 +238,53 @@ func (this *Usb) LoadUrl(url string) error {
 		if matches := vendorRgx.FindStringSubmatch(scanner.Text()); matches != nil {
 
 			vendor = &Vendor{Name: matches[2]}
-			this.Vendors[matches[1]] = vendor
+			vendors[matches[1]] = vendor
 			continue
 		}
 
 		if matches := protocolRgx.FindStringSubmatch(scanner.Text()); matches != nil {
 
-			if subclass == nil {
-				return fmt.Errorf(`protocol with no subclass`)
+			if subClass == nil {
+				return fmt.Errorf(`protocol with no subClass`)
 			}
-			if subclass.Protocol == nil {
-				subclass.Protocol = make(map[string]*Protocol)
+			if subClass.Protocol == nil {
+				subClass.Protocol = make(map[string]*Protocol)
 			}
 
-			subclass.Protocol[matches[1]] = &Protocol{Name: matches[2]}
+			subClass.Protocol[matches[1]] = &Protocol{Name: matches[2]}
 			continue
 		}
 
-		if matches := subclassRgx.FindStringSubmatch(scanner.Text()); matches != nil {
+		if matches := subClassRgx.FindStringSubmatch(scanner.Text()); matches != nil {
 
 			if class == nil {
-				return fmt.Errorf(`subclass with no class`)
+				return fmt.Errorf(`subClass with no class`)
 			}
 			if class.SubClass == nil {
 				class.SubClass = make(map[string]*SubClass)
 			}
 
-			subclass = &SubClass{Name: matches[2]}
-			class.SubClass[matches[1]] = subclass
+			subClass = &SubClass{Name: matches[2]}
+			class.SubClass[matches[1]] = subClass
 			continue
 		}
 
 		if matches := classRgx.FindStringSubmatch(scanner.Text()); matches != nil {
 
 			class = &Class{Name: matches[2]}
-			this.Classes[matches[1]] = class
+			classes[matches[1]] = class
 		}
 	}
 
-	return scanner.Err()
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	this.Source = url
+	this.Vendors = vendors
+	this.Classes = classes
+
+	return nil
 }
 
 // Load loads previously-saved USB information from disk.
@@ -289,7 +305,7 @@ func (this *Usb) Load(f string) error {
 // Save saves current USB information to disk.
 func (this *Usb) Save(f string) error {
 
-	j, err := json.Marshal(this)
+	j, err := json.MarshalIndent(this, marshalPrefix, marshalIndent)
 
 	if err != nil {
 		return err
@@ -299,4 +315,9 @@ func (this *Usb) Save(f string) error {
 	}
 
 	return nil
+}
+
+// Refresh refreshes the USB information from the source URL.
+func (this *Usb) Refresh() error {
+	return this.LoadUrl(this.Source)
 }
