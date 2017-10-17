@@ -14,11 +14,7 @@
 
 package usb
 
-import (
-	`fmt`
-
-	`github.com/google/gousb`
-)
+import `fmt`
 
 // Generic decorates a gousb.Device with additional methods and properties.
 type Generic struct{
@@ -26,9 +22,9 @@ type Generic struct{
 }
 
 // NewGeneric instantiates a Generic wrapper for an existing gousb Device.
-func NewGeneric(gd *gousb.Device) (this *Generic, err error) {
+func NewGeneric(t interface{}) (this *Generic, err error) {
 
-	if d, err := NewDevice(gd); err != nil {
+	if d, err := NewDevice(t); err != nil {
 		return nil, err
 	} else {
 		this = &Generic{d}

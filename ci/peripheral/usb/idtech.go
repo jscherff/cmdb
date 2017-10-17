@@ -128,15 +128,17 @@ type IDTech struct {
 }
 
 // NewIDTech instantiates a IDTech wrapper for an existing gousb Device.
-func NewIDTech(gd *gousb.Device) (this *IDTech, err error) {
+func NewIDTech(t interface{}) (this *IDTech, err error) {
 
-	if d, err := NewDevice(gd); err != nil {
+	if d, err := NewDevice(t); err != nil {
 		return nil, err
 	} else {
 		this = &IDTech{d}
 	}
 
-	if gd == nil {
+	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
+
+	if _, ok := t.(*gousb.Device); !ok {
 		return this, nil
 	}
 
@@ -151,7 +153,6 @@ func NewIDTech(gd *gousb.Device) (this *IDTech, err error) {
 	}
 
 	this.Info.SoftwareID = this.Info.FirmwareVer
-	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
 
 	return this, nil
 }

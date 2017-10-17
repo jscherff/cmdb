@@ -86,15 +86,17 @@ type Magtek struct {
 }
 
 // NewMagtek instantiates a Magtek wrapper for an existing gousb Device.
-func NewMagtek(gd *gousb.Device) (this *Magtek, err error) {
+func NewMagtek(t interface{}) (this *Magtek, err error) {
 
-	if d, err := NewDevice(gd); err != nil {
+	if d, err := NewDevice(t); err != nil {
 		return nil, err
 	} else {
 		this = &Magtek{d}
 	}
 
-	if gd == nil {
+	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
+
+	if _, ok := t.(*gousb.Device); !ok {
 		return this, nil
 	}
 
@@ -112,7 +114,6 @@ func NewMagtek(gd *gousb.Device) (this *Magtek, err error) {
 	}
 
 	this.Info.FirmwareVer = this.Info.SoftwareID
-	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
 
 	return this, nil
 }
