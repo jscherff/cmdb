@@ -210,7 +210,7 @@ func (this *Magtek) Reset() (err error) {
 		return err
 	}
 	if rc := magtekRespCode(data[0]); !rc.Ok() {
-		return fmt.Errorf(`device command response %d: %q`, rc, rc)
+		return fmt.Errorf(`device command response %02d: %q`, rc, rc)
 	}
 
 	time.Sleep(5 * time.Second)
@@ -255,7 +255,7 @@ func (this *Magtek) getProperty(p byte) (s string, err error) {
 		return s, err
 	}
 	if rc := magtekRespCode(data[0]); !rc.Ok() {
-		return s, fmt.Errorf(`device command response %d: %q`, rc, rc)
+		return s, fmt.Errorf(`device command response %02d: %q`, rc, rc)
 	}
 	if data[1] > 0x00 {
 		s = string(data[2:int(data[1])+2])
@@ -278,7 +278,7 @@ func (this *Magtek) setProperty(p byte, s string) (err error) {
 		return err
 	}
 	if rc := magtekRespCode(data[0]); !rc.Ok() {
-		return fmt.Errorf(`device command response %d: %q`, rc, rc)
+		return fmt.Errorf(`device command response %02d: %q`, rc, rc)
 	}
 
 	this.Refresh()

@@ -332,7 +332,7 @@ func (this *IDTech) sendCommand(cmd bytes.Buffer) (resp []byte, err error) {
 		return resp, fmt.Errorf(`no response`)
 	}
 	if rc := idtechRespCode(resp[0]); !rc.Ok() {
-		err = fmt.Errorf(`device command response %d: %q`, rc, rc)
+		err = fmt.Errorf(`device command response %02d: %q`, rc, rc)
 	}
 
 	st := bytes.IndexByte(resp, idtechSymStartOfText) + 1
