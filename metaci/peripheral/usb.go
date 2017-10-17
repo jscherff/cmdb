@@ -23,6 +23,7 @@ import (
 	`os`
 	`path/filepath`
 	`regexp`
+	`time`
 )
 
 const (
@@ -31,6 +32,13 @@ const (
 	usbMetaSourceUrl = `http://www.linux-usb.org/usb.ids`
 	marshalPrefix = ""
 	marshalIndent = "\t"
+	maximumAge = 720
+	minimumAge = 1
+	tagVendor = `vendor_name`
+	tagProduct = `product_name`
+	tagClass = `usb_class`
+	tagSubClass = `usb_subclass`
+	tagProtocol = `usb_protocol`
 )
 
 var (
@@ -57,14 +65,15 @@ var (
 // subthis.Classes, and protocols.
 type Usb struct {
 	Source string
+	Updated time.Time
 	Vendors map[string]*Vendor
 	Classes map[string]*Class
 }
 
 // Vendor contains the vendor name and mappings to all the vendor's products.
 type Vendor struct {
-	Name string
-	Product	map[string]*Product
+	Name string			`json:"vendor_name"`
+	Product	map[string]*Product	`json:"-"`
 }
 
 // String returns the name of the vendor.
@@ -74,7 +83,7 @@ func (this *Vendor) String() string {
 
 // Product contains the name of the product.
 type Product struct {
-	Name string
+	Name string			`json:"product_name"`
 }
 
 // String returns the name of the product.
@@ -84,8 +93,8 @@ func (this *Product) String() string {
 
 // Class contains the name of the class and mappings for each subClass.
 type Class struct {
-	Name string
-	SubClass map[string]*SubClass
+	Name string			`json:"usb_class"`
+	SubClass map[string]*SubClass	`json:"-"`
 }
 
 // String returns the name of the class.
@@ -95,8 +104,8 @@ func (this *Class) String() string {
 
 // SubClass contains the name of the subClass and any associated protocols.
 type SubClass struct {
-	Name string
-	Protocol map[string]*Protocol
+	Name string			`json:"usb_subclass"`
+	Protocol map[string]*Protocol	`json:"-"`
 }
 
 // String returns the name of the SubClass.
@@ -106,7 +115,7 @@ func (this *SubClass) String() string {
 
 // Protocol contains the name of the protocol.
 type Protocol struct {
-	Name string
+	Name string			`json:"usb_protocol"`
 }
 
 // String returns the name of the protocol.
@@ -115,33 +124,39 @@ func (this *Protocol) String() string {
 }
 
 // NewUsb creates a new instance of Usb with empty vendor/class maps.
-func NewUsb(cf string) (*Usb, error) {
+func NewUsb(cf string) (this *Usb, err error) {
 
-	this := &Usb{
-		Source: usbMetaSourceUrl, // Default
+	this = &Usb{
+
+		Source: usbMetaSourceUrl,		// Default
+		Updated: time.Now(),			// Default
+
 		Vendors: make(map[string]*Vendor),
 		Classes: make(map[string]*Class),
 	}
 
-	if _, err := os.Stat(cf); err != nil {
-
-		if err := this.LoadUrl(usbMetaSourceUrl); err != nil {
-			return nil, err
-		}
-		if err := os.MkdirAll(filepath.Dir(cf), usbMetaDirMode); err != nil {
-			return nil, err
-		}
-		if err := this.Save(cf); err != nil {
-			return nil, err
-		}
-
-	} else {
-
-		if err := this.Load(cf); err != nil {
-			return nil, err
-		}
+	if err = this.Load(cf); err != nil {
+		err = this.LoadUrl(usbMetaSourceUrl)
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
+	if time.Since(this.Updated).Hours() > maximumAge {
+		this.Refresh()
+	}
+
+	if time.Since(this.Updated).Minutes() < minimumAge {
+
+		if err := os.MkdirAll(filepath.Dir(cf), usbMetaDirMode); err != nil {
+			return this, err
+		}
+
+		if err := this.Save(cf); err != nil {
+			return this, err
+		}
+	}
 
 	return this, nil
 }
@@ -281,6 +296,7 @@ func (this *Usb) LoadUrl(url string) error {
 	}
 
 	this.Source = url
+	this.Updated = time.Now()
 	this.Vendors = vendors
 	this.Classes = classes
 
