@@ -68,6 +68,8 @@ type DeviceInfo struct {
 	Custom08	string		`json:"custom_08,omitempty" xml:",omitempty" csv:"-" nvp:"-"`
 	Custom09	string		`json:"custom_09,omitempty" xml:",omitempty" csv:"-" nvp:"-"`
 	Custom10	string		`json:"custom_10,omitempty" xml:",omitempty" csv:"-" nvp:"-"`
+
+	Changes		[][]string	`json:"-" xml:"-" csv:"-" nvp:"-" cmp:"-"`
 }
 
 // NewDeviceInfo instantiates a DeviceInfo object.
@@ -106,6 +108,11 @@ func (this *DeviceInfo) ID() (string) {
 	return this.SerialNumber
 }
 
+// SN is a convenience method to retrieve the device serial number.
+func (this *DeviceInfo) SN() (string) {
+	return this.SerialNumber
+}
+
 // VID is a convenience method to retrieve the device vendor ID.
 func (this *DeviceInfo) VID() (string) {
 	return this.VendorID
@@ -141,7 +148,7 @@ func (this *DeviceInfo) RestoreJSON(j []byte) (error) {
 	return json.Unmarshal(j, &this)
 }
 
-// CompareFile compares fields and properties and returns array of changes.
+// CompareFile compares fields of two objects and returns an array of changes.
 func (this *DeviceInfo) CompareFile(fn string) (ss [][]string, err error) {
 
 	other := &DeviceInfo{}
@@ -153,16 +160,40 @@ func (this *DeviceInfo) CompareFile(fn string) (ss [][]string, err error) {
 	return goutil.CompareObjects(other, this, `cmp`)
 }
 
-// CompareJSON compares fields and properties and returns an array of differences.
-func (this *DeviceInfo) CompareJSON(b []byte) (ss [][]string, err error) {
+// CompareJSON compares fields of two objects and returns an array of changes.
+func (this *DeviceInfo) CompareJSON(j []byte) (ss [][]string, err error) {
 
 	other := &DeviceInfo{}
 
-	if err = other.RestoreJSON(b); err != nil {
+	if err = other.RestoreJSON(j); err != nil {
 		return ss, err
 	}
 
 	return goutil.CompareObjects(other, this, `cmp`)
+}
+
+// AuditFile compares fields of two objects and stores changes internally.
+func (this *DeviceInfo) AuditFile(fn string) (err error) {
+	this.Changes, err = this.CompareFile(fn)
+	return err
+}
+
+// AuditJSON compares fields of two objects and stores changes internally.
+func (this *DeviceInfo) AuditJSON(j []byte) (err error) {
+	this.Changes, err = this.CompareJSON(j)
+	return err
+}
+
+// SetChanges stores a list of DeviceInfo property changes. Each change
+// is a tuple of field name, old value, and new value.
+func (this *DeviceInfo) SetChanges(c [][]string) {
+	this.Changes = c
+}
+
+// GetChanges returns a list of DeviceInfo property changes. Each change
+// is a tuple of field name, old value, and new value.
+func (this *DeviceInfo) GetChanges() ([][]string) {
+	return this.Changes
 }
 
 // JSON reports all unfiltered fields in JSON format.

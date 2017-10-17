@@ -103,27 +103,32 @@ func NewDevice(t interface{}) (this *Device, err error) {
 
 // ID is a convenience method to retrieve the device serial number.
 func (this *Device) ID() (string) {
-	return this.Info.SerialNumber
+	return this.Info.ID()
+}
+
+// SN is a convenience method to retrieve the device serial number.
+func (this *Device) SN() (string) {
+	return this.Info.SN()
 }
 
 // VID is a convenience method to retrieve the device vendor ID.
 func (this *Device) VID() (string) {
-	return this.Info.VendorID
+	return this.Info.VID()
 }
 
 // PID is a convenience method to retrieve the device product ID.
 func (this *Device) PID() (string) {
-	return this.Info.ProductID
+	return this.Info.PID()
 }
 
 // Host is a convenience method to retrieve the device hostname.
 func (this *Device) Host() (string) {
-	return this.Info.HostName
+	return this.Info.Host()
 }
 
 // Type is a convenience method to help identify object type to other apps.
 func (this *Device) Type() (string) {
-	return this.Info.ObjectType
+	return this.Info.Type()
 }
 
 // GetInfo detaches and returns just the DeviceInfo object.
