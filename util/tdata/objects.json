@@ -1,0 +1,184 @@
+{
+	"DevGen": {
+
+		"gen1": {
+			"Info": {
+				"host_name": "SPC024-1",
+				"vendor_id": "04b3",
+				"product_id": "310d",
+				"serial_number": "",
+				"vendor_name": "",
+				"product_name": "",
+				"product_ver": "",
+				"firmware_ver": "",
+				"software_id": "",
+				"port_number": 3,
+				"bus_number": 1,
+				"bus_address": 31,
+				"buffer_size": 0,
+				"max_pkt_size": 8,
+				"usb_spec": "2.00",
+				"usb_class": "per-interface",
+				"usb_subclass": "per-interface",
+				"usb_protocol": "0",
+				"device_speed": "low",
+				"device_ver": "43.01",
+				"object_type": "*usbci.Generic",
+				"device_sn": "",
+				"factory_sn": "",
+				"descriptor_sn": ""
+			}
+		},
+			
+		"gen2": {
+			"Info": {
+				"host_name": "SPC024-1",
+				"vendor_id": "04b3",
+				"product_id": "3025",
+				"serial_number": "",
+				"vendor_name": "LITE-ON Technology",
+				"product_name": "USB NetVista Full Width Keyboard.",
+				"product_ver": "",
+				"firmware_ver": "",
+				"software_id": "",
+				"port_number": 4,
+				"bus_number": 1,
+				"bus_address": 32,
+				"buffer_size": 0,
+				"max_pkt_size": 8,
+				"usb_spec": "1.10",
+				"usb_class": "per-interface",
+				"usb_subclass": "per-interface",
+				"usb_protocol": "0",
+				"device_speed": "low",
+				"device_ver": "1.09",
+				"object_type": "*usbci.Generic",
+				"device_sn": "",
+				"factory_sn": "",
+				"descriptor_sn": ""
+			}
+		}
+	},
+
+	"DevMag": {
+			
+		"mag1": {
+			"Info": {
+				"host_name": "SPC024-1",
+				"vendor_id": "0801",
+				"product_id": "0001",
+				"serial_number": "B3C0EAB",
+				"vendor_name": "Mag-Tek",
+				"product_name": "USB Swipe Reader",
+				"product_ver": "V05",
+				"firmware_ver": "21042840G01",
+				"software_id": "21042840G01",
+				"port_number": 2,
+				"bus_number": 1,
+				"bus_address": 26,
+				"buffer_size": 60,
+				"max_pkt_size": 8,
+				"usb_spec": "1.10",
+				"usb_class": "per-interface",
+				"usb_subclass": "per-interface",
+				"usb_protocol": "0",
+				"device_speed": "full",
+				"device_ver": "1.00",
+				"object_type": "*usb.Magtek",
+				"device_sn": "B3C0EAB",
+				"factory_sn": "B3C0EAB061917AA",
+				"descriptor_sn": "B3C0EAB"
+			}
+		},
+			
+		"mag2": {
+			"Info": {
+				"host_name": "SPC024-1",
+				"vendor_id": "0801",
+				"product_id": "0001",
+				"serial_number": "B3C0EAB",
+				"vendor_name": "Mag-Tek",
+				"product_name": "USB Swipe Reader",
+				"product_ver": "V05",
+				"firmware_ver": "21042840G01",
+				"software_id": "21042840G02",
+				"port_number": 2,
+				"bus_number": 1,
+				"bus_address": 26,
+				"buffer_size": 60,
+				"max_pkt_size": 8,
+				"usb_spec": "2.00",
+				"usb_class": "per-interface",
+				"usb_subclass": "per-interface",
+				"usb_protocol": "0",
+				"device_speed": "full",
+				"device_ver": "1.00",
+				"object_type": "*usb.Magtek",
+				"device_sn": "B3C0EAB",
+				"factory_sn": "B3C0EAB061917AA",
+				"descriptor_sn": "B3C0EAB"
+			}
+		}
+	},
+
+	"DevIdt": {
+			
+		"idt1": {
+			"Info": {
+				"host_name": "SPC024-1",
+				"vendor_id": "0acd",
+				"product_id": "2030",
+				"serial_number": "551U043728",
+				"vendor_name": "ID TECH",
+				"product_name": "TM3 Magstripe USB-HID Keyboard Reader",
+				"product_ver": "Ver: 5.28.00 Date: 141125",
+				"firmware_ver": "ID TECH TM3 SecureMag USB HID KB Reader  V 5.28",
+				"software_id": "ID TECH TM3 SecureMag USB HID KB Reader  V 5.28",
+				"port_number": 1,
+				"bus_number": 1,
+				"bus_address": 25,
+				"buffer_size": 0,
+				"max_pkt_size": 8,
+				"usb_spec": "2.00",
+				"usb_class": "per-interface",
+				"usb_subclass": "per-interface",
+				"usb_protocol": "0",
+				"device_speed": "full",
+				"device_ver": "1.00",
+				"object_type": "*usb.IDTech",
+				"device_sn": "551U043728",
+				"factory_sn": "",
+				"descriptor_sn": ""
+			}
+		},
+			
+		"idt2": {
+			"Info": {
+				"host_name": "SPC024-1",
+				"vendor_id": "0acd",
+				"product_id": "2030",
+				"serial_number": "551U043728",
+				"vendor_name": "ID TECH",
+				"product_name": "TM3 Magstripe USB-HID Keyboard Reader",
+				"product_ver": "Ver: 5.28.01 Date: 150115",
+				"firmware_ver": "ID TECH TM3 SecureMag USB HID KB Reader  V 5.28",
+				"software_id": "ID TECH TM3 SecureMag USB HID KB Reader  V 5.28",
+				"port_number": 1,
+				"bus_number": 1,
+				"bus_address": 25,
+				"buffer_size": 0,
+				"max_pkt_size": 8,
+				"usb_spec": "2.00",
+				"usb_class": "per-interface",
+				"usb_subclass": "per-interface",
+				"usb_protocol": "0",
+				"device_speed": "full",
+				"device_ver": "1.00",
+				"object_type": "*usb.IDTech",
+				"device_sn": "551U043728",
+				"factory_sn": "",
+				"descriptor_sn": ""
+			}
+		}
+	}
+}

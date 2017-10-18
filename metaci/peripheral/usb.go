@@ -72,8 +72,8 @@ type Usb struct {
 
 // Vendor contains the vendor name and mappings to all the vendor's products.
 type Vendor struct {
-	Name string			`json:"vendor_name"`
-	Product	map[string]*Product	`json:"-"`
+	Name string
+	Product	map[string]*Product
 }
 
 // String returns the name of the vendor.
@@ -83,7 +83,7 @@ func (this *Vendor) String() string {
 
 // Product contains the name of the product.
 type Product struct {
-	Name string			`json:"product_name"`
+	Name string
 }
 
 // String returns the name of the product.
@@ -93,8 +93,8 @@ func (this *Product) String() string {
 
 // Class contains the name of the class and mappings for each subClass.
 type Class struct {
-	Name string			`json:"usb_class"`
-	SubClass map[string]*SubClass	`json:"-"`
+	Name string
+	SubClass map[string]*SubClass
 }
 
 // String returns the name of the class.
@@ -104,8 +104,8 @@ func (this *Class) String() string {
 
 // SubClass contains the name of the subClass and any associated protocols.
 type SubClass struct {
-	Name string			`json:"usb_subclass"`
-	Protocol map[string]*Protocol	`json:"-"`
+	Name string
+	Protocol map[string]*Protocol
 }
 
 // String returns the name of the SubClass.
@@ -115,7 +115,7 @@ func (this *SubClass) String() string {
 
 // Protocol contains the name of the protocol.
 type Protocol struct {
-	Name string			`json:"usb_protocol"`
+	Name string
 }
 
 // String returns the name of the protocol.
