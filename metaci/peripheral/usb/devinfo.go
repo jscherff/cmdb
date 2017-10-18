@@ -133,6 +133,11 @@ func (this *DeviceInfo) Type() (string) {
 	return this.ObjectType
 }
 
+// Conn returns information about the physical connection.
+func (this *DeviceInfo) Conn() (string) {
+	return fmt.Sprintf(`P%02x-B%02x`, this.PortNumber, this.BusNumber)
+}
+
 // Save saves the object to a JSON file.
 func (this *DeviceInfo) Save(fn string) (error) {
 	return goutil.SaveObject(this, fn)
