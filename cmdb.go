@@ -14,7 +14,7 @@
 
 package cmdb
 
-type Identifiable interface {
+type Identifier interface {
 	ID() (string)
 	VID() (string)
 	PID() (string)
@@ -23,8 +23,8 @@ type Identifiable interface {
 	Conn() (string)
 }
 
-type Reportable interface {
-	Identifiable
+type Reporter interface {
+	Identifier
 	CSV() ([]byte, error)
 	NVP() ([]byte, error)
 	XML() ([]byte, error)
@@ -33,8 +33,8 @@ type Reportable interface {
 	PrettyJSON() ([]byte, error)
 }
 
-type Comparable interface {
-	Identifiable
+type Auditer interface {
+	Identifier
 	Save(string) (error)
 	RestoreFile(string) (error)
 	RestoreJSON([]byte) (error)
@@ -46,21 +46,19 @@ type Comparable interface {
 	GetChanges() ([][]string)
 }
 
-type Configurable interface {
+type Serializer interface {
+	Identifier
 	GetDeviceSN() (string, error)
 	SetDeviceSN(string) (error)
+	SetDefaultSN() (error)
 	EraseDeviceSN() (error)
-	Refresh() (map[string]bool)
+	Refresh() (error)
 	Reset() (error)
 }
 
-type FactoryConfigurable interface {
-	Configurable
+type FactorySerializer interface {
+	Serializer
 	GetFactorySN() (string, error)
 	SetFactorySN(string) (error)
 	CopyFactorySN(int) (error)
-}
-
-type Registerable interface {
-	Reportable
 }

@@ -34,7 +34,7 @@ type DeviceInfo struct {
 	HostName	string		`json:"host_name"     csv:"host_name"`
 	VendorID	string		`json:"vendor_id"     csv:"vendor_id"`
 	ProductID	string		`json:"product_id"    csv:"product_id"`
-	SerialNumber	string		`json:"serial_number" csv:"serial_number"`
+	SerialNum	string		`json:"serial_number" csv:"serial_number"`
 	VendorName	string		`json:"vendor_name"   csv:"vendor_name"`
 	ProductName	string		`json:"product_name"  csv:"product_name"`
 	ProductVer	string		`json:"product_ver"   csv:"product_ver"`
@@ -105,12 +105,12 @@ func NewDeviceInfo(desc *gousb.DeviceDesc) (this *DeviceInfo, err error) {
 
 // ID is a convenience method to retrieve the device serial number.
 func (this *DeviceInfo) ID() (string) {
-	return this.SerialNumber
+	return this.SerialNum
 }
 
 // SN is a convenience method to retrieve the device serial number.
 func (this *DeviceInfo) SN() (string) {
-	return this.SerialNumber
+	return this.SerialNum
 }
 
 // VID is a convenience method to retrieve the device vendor ID.

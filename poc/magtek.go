@@ -18,6 +18,7 @@ import (
 	`fmt`
 	`log`
 	`github.com/google/gousb`
+	`github.com/jscherff/cmdb`
 	`github.com/jscherff/cmdb/ci/peripheral/usb`
 )
 
@@ -42,14 +43,47 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err = mdev.CopyFactorySN(7); err != nil {
+	if s, err := mdev.GetFactorySN(); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(`SN:`, s)
+	}
+
+	if err := mdev.CopyFactorySN(7); err != nil {
+		fmt.Println(err)
+	} else {
+		mdev.Reset()
+	}
+
+	if err = mdev.SetFactorySN(`ABCDEFGHIJKLMNO`); err != nil {
+		fmt.Println(err)
+	} else {
+		mdev.Reset()
+	}
+
+	fmt.Printf("VID = %T, PID = %T\n", mdev.Desc.Vendor, mdev.Desc.Product)
+
+	b, err := mdev.PrettyJSON()
+	fmt.Println(string(b))
+
+	mdev.Save(mdev.ID() + `.json`)
+
+	bad := []string{`a`,`b`,`c`}
+
+	if _, err := usb.NewMagtek(bad); err != nil {
 		fmt.Println(err)
 	}
 
-	mdev.Reset()
+	var i interface{} = mdev
 
-	b, err := mdev.Info.PrettyJSON()
-	fmt.Println(string(b))
+	switch t := i.(type) {
+	case cmdb.Serializer:
+		fmt.Printf("YES %T\n", t)
+	}
 
-	mdev.GetInfo().Save(mdev.ID() + `.json`)
+	showID(mdev)
+}
+
+func showID(s cmdb.Serializer) {
+	fmt.Println(s.ID())
 }
