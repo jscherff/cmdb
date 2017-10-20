@@ -51,89 +51,61 @@ const (
 
 // Device decorates a gousb.Device with additional methods and properties.
 type Device struct {
-	*gousb.Device
-	Info *usb.DeviceInfo
+	*gousb.Device `json:"-" xml:"-" csv:"-" nvp:"-" cmp:"-"`
+	*usb.DeviceInfo
 }
 
 // NewDevice instantiates a Device wrapper for a gousb Device.
-func NewDevice(t interface{}) (this *Device, err error) {
+func NewDevice(i interface{}) (this *Device, err error) {
 
-	if t == nil {
+	switch t := i.(type) {
+
+	case *gousb.Device:
+
+		this = &Device{Device: t}
+
+		if this.DeviceInfo, err = usb.NewDeviceInfo(this.Desc); err != nil {
+			return nil, err
+		}
+		if this.SerialNum, err = this.SerialNumber(); err != nil {
+			return nil, err
+		}
+		if this.VendorName, err = this.Manufacturer(); err != nil {
+			return nil, err
+		}
+		if this.ProductName, err = this.Product(); err != nil {
+			return nil, err
+		}
+
+	case *gousb.DeviceDesc:
+
+		this = &Device{Device: &gousb.Device{Desc: t}}
+
+		if this.DeviceInfo, err = usb.NewDeviceInfo(this.Desc); err != nil {
+			return nil, err
+		}
+
+	case nil:
 
 		this = &Device{Device: &gousb.Device{Desc: nil}}
 
-		if this.Info, err = usb.NewDeviceInfo(this.Desc); err != nil {
+		if this.DeviceInfo, err = usb.NewDeviceInfo(this.Desc); err != nil {
 			return nil, err
 		}
 
-	} else if obj, ok := t.(*gousb.Device); ok {
+	default:
 
-		this = &Device{Device: obj}
-
-		if this.Info, err = usb.NewDeviceInfo(this.Desc); err != nil {
-			return nil, err
-		}
-		if this.Info.VendorName, err = this.Manufacturer(); err != nil {
-			return nil, err
-		}
-		if this.Info.ProductName, err = this.Product(); err != nil {
-			return nil, err
-		}
-		if this.Info.SerialNumber, err = this.SerialNumber(); err != nil {
-			return nil, err
-		}
-
-	} else if obj, ok := t.(*gousb.DeviceDesc); ok {
-
-		this = &Device{Device: &gousb.Device{Desc: obj}}
-
-		if this.Info, err = usb.NewDeviceInfo(this.Desc); err != nil {
-			return nil, err
-		}
-
-	} else {
-
-		return nil, fmt.Errorf(`unsupported base object %T`, t)
+		return nil, fmt.Errorf(`unsupported base type %T`, t)
 	}
 
-	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
+	this.ObjectType = fmt.Sprintf(`%T`, this)
 
 	return this, nil
 }
 
-// ID is a convenience method to retrieve the device serial number.
-func (this *Device) ID() (string) {
-	return this.Info.ID()
-}
-
-// SN is a convenience method to retrieve the device serial number.
-func (this *Device) SN() (string) {
-	return this.Info.SN()
-}
-
-// VID is a convenience method to retrieve the device vendor ID.
-func (this *Device) VID() (string) {
-	return this.Info.VID()
-}
-
-// PID is a convenience method to retrieve the device product ID.
-func (this *Device) PID() (string) {
-	return this.Info.PID()
-}
-
-// Host is a convenience method to retrieve the device hostname.
-func (this *Device) Host() (string) {
-	return this.Info.Host()
-}
-
-// Type is a convenience method to help identify object type to other apps.
-func (this *Device) Type() (string) {
-	return this.Info.Type()
-}
-
 // GetInfo detaches and returns just the DeviceInfo object.
 func (this *Device) GetInfo() (*usb.DeviceInfo) {
-	return this.Info
+	return this.DeviceInfo
 }
 
 // ControlSetReport performs a SetReport control transfer.

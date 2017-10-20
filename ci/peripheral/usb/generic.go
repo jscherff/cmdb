@@ -22,15 +22,15 @@ type Generic struct{
 }
 
 // NewGeneric instantiates a Generic wrapper for an existing gousb Device.
-func NewGeneric(t interface{}) (this *Generic, err error) {
+func NewGeneric(i interface{}) (this *Generic, err error) {
 
-	if d, err := NewDevice(t); err != nil {
+	if d, err := NewDevice(i); err != nil {
 		return nil, err
 	} else {
 		this = &Generic{d}
 	}
 
-	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
+	this.ObjectType = fmt.Sprintf(`%T`, this)
 
 	return this, nil
 }

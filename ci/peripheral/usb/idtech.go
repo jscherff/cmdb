@@ -67,59 +67,70 @@ import (
 const (
 	// Exported
 
-	IDTechVID		uint16	= 0x0ACD
-	IDTechKbPID		uint16	= 0x2030
-	IDTechHidPID		uint16	= 0x2010
+	IDTechVID		= 0x0acd
+	IDTechPID		= 0x2030 // Default
 
-	IDTechValBeepNone	string	= `0`
-	IDTechValBeepLowLong	string	= `1`
-	IDTechValBeepHighLong	string	= `2`
-	IDTechValBeepHighShort	string	= `3`
-	IDTechValBeepLowShort	string	= `4`
+	IDTechKbPID		= 0x2030
+	IDTechHidPID		= 0x2010
+
+	IDTechValBeepNone	= `0`
+	IDTechValBeepLowLong	= `1`
+	IDTechValBeepHighLong	= `2`
+	IDTechValBeepHighShort	= `3`
+	IDTechValBeepLowShort	= `4`
 
 	// Non-Exported
 
-	idtechSymStartOfText	uint8	= 0x02
-	idtechSymEndOfText	uint8	= 0x03
-	idtechSymReviewSetting	uint8	= 0x52
-	idtechSymSendSetting	uint8	= 0x53
+	idtechSymStartOfText	= 0x02
+	idtechSymEndOfText	= 0x03
+	idtechSymReviewSetting	= 0x52
+	idtechSymSendSetting	= 0x53
 
-	idtechCmdCopyright	uint8	= 0x38
-	idtechCmdVersion	uint8	= 0x39
-	idtechCmdReset		uint8	= 0x49
+	idtechCmdCopyright	= 0x38
+	idtechCmdVersion	= 0x39
+	idtechCmdReset		= 0x49
 
-	idtechPropBeep		uint8	= 0x11
-	idtechPropDeviceSN	uint8	= 0x4e
-	idtechPropFirmwareVer	uint8	= 0x22
+	idtechPropBeep		= 0x11
+	idtechPropDeviceSN	= 0x4e
+	idtechPropFirmwareVer	= 0x22
 
-	idtechBufSizeSecureMag	int	= 8
+	idtechBufSizeSecureMag	= 8
 )
 
+// idtechRespCode represents the response code from control transfer
+// vendor commands.
 type idtechRespCode uint8
 
-func (r idtechRespCode) Ok() bool {
-	return r == 0x06
+// Ok indicates control transfer vendor command success.
+func (this idtechRespCode) Ok() bool {
+	return this == 0x06
 }
 
-func (r idtechRespCode) String() (v string) {
+// String implements the Stringer interface for idtechRespCode.
+func (this idtechRespCode) String() (s string) {
 
-	switch r {
+	switch this {
 
 	case 0x06:
-		v = `Acknowledge`
+		s = `Acknowledge`
 	case 0x15:
-		v = `Negative Acknowledge`
+		s = `Negative Acknowledge`
 	case 0x16:
-		v = `Unknown ID`
+		s = `Unknown ID`
 	case 0x17:
-		v = `Already in POS Mode`
+		s = `Already in POS Mode`
 	case 0xFD:
-		v = `Negative Acknowledge`
+		s = `Negative Acknowledge`
 	default:
-		v = `Unknown Result Code`
+		s = `Unknown Result Code`
 	}
 
-	return v
+	return s
+}
+
+// Int converts the integer value of the idtechRespCode.
+func (this idtechRespCode) Int() (n int) {
+	return int(this)
 }
 
 // IDTech decorates a gousb.Device with additional methods and properties.
@@ -127,32 +138,49 @@ type IDTech struct {
 	*Device
 }
 
-// NewIDTech instantiates a IDTech wrapper for an existing gousb Device.
-func NewIDTech(t interface{}) (this *IDTech, err error) {
+// IsIDTech helps determine whether or not an IDTech card reader.
+func IsIDTech(vid, pid gousb.ID) (bool) {
 
-	if d, err := NewDevice(t); err != nil {
+	if vid != IDTechVID {
+		return false
+	}
+
+	switch pid {
+	case IDTechKbPID:
+	case IDTechHidPID:
+	default:
+		return false
+	}
+
+	return true
+}
+
+// NewIDTech instantiates a IDTech wrapper for an existing gousb Device.
+func NewIDTech(i interface{}) (this *IDTech, err error) {
+
+	if d, err := NewDevice(i); err != nil {
 		return nil, err
 	} else {
 		this = &IDTech{d}
 	}
 
-	this.Info.ObjectType = fmt.Sprintf(`%T`, this)
+	this.ObjectType = fmt.Sprintf(`%T`, this)
 
-	if _, ok := t.(*gousb.Device); !ok {
+	if _, ok := i.(*gousb.Device); !ok {
 		return this, nil
 	}
 
-	if this.Info.FirmwareVer, err = this.GetFirmwareVer(); err != nil {
+	if this.FirmwareVer, err = this.GetFirmwareVer(); err != nil {
 		return this, err
 	}
-	if this.Info.ProductVer, err = this.GetProductVer(); err != nil {
+	if this.ProductVer, err = this.GetProductVer(); err != nil {
 		return this, err
 	}
 	if err = this.Refresh(); err != nil {
 		return this, err
 	}
 
-	this.Info.SoftwareID = this.Info.FirmwareVer
+	this.SoftwareID = this.FirmwareVer
 
 	return this, nil
 }
@@ -160,14 +188,14 @@ func NewIDTech(t interface{}) (this *IDTech, err error) {
 // Refresh updates API properties whose values may have changed.
 func (this *IDTech) Refresh() (err error) {
 
-	if this.Info.DeviceSN, err = this.GetDeviceSN(); err != nil {
+	if this.DeviceSN, err = this.GetDeviceSN(); err != nil {
 		return err
 	}
-	if this.Info.DescriptorSN, err = this.SerialNumber(); err != nil {
+	if this.DescriptorSN, err = this.SerialNumber(); err != nil {
 		return err
 	}
 
-	this.Info.SerialNumber = this.Info.DeviceSN
+	this.SerialNum = this.DeviceSN
 
 	return err
 }
@@ -177,9 +205,9 @@ func (this *IDTech) GetFirmwareVer() (string, error) {
 	return this.getProperty(idtechPropFirmwareVer)
 }
 
-// EraseDeviceSN removes the device configurable serial number from NVRAM.
-func (this *IDTech) EraseDeviceSN() (error) {
-	return this.setProperty(idtechPropDeviceSN, ``)
+// GetDeviceSN retrieves the device configurable serial number from NVRAM.
+func (this *IDTech) GetDeviceSN() (v string, err error) {
+	return this.getProperty(idtechPropDeviceSN)
 }
 
 // SetDeviceSN sets the device configurable serial number in NVRAM.
@@ -187,9 +215,14 @@ func (this *IDTech) SetDeviceSN(v string) (error) {
 	return this.setProperty(idtechPropDeviceSN, v)
 }
 
-// GetDeviceSN retrieves the device configurable serial number from NVRAM.
-func (this *IDTech) GetDeviceSN() (v string, err error) {
-	return this.getProperty(idtechPropDeviceSN)
+// SetDefaultSN is a NOOP function to comply with the Serializer interface.
+func (this *IDTech) SetDefaultSN(v string) (error) {
+	return nil
+}
+
+// EraseDeviceSN removes the device configurable serial number from NVRAM.
+func (this *IDTech) EraseDeviceSN() (error) {
+	return this.setProperty(idtechPropDeviceSN, ``)
 }
 
 // SetBeep sets the beep frequency and duration on the device.
@@ -329,10 +362,10 @@ func (this *IDTech) sendCommand(cmd bytes.Buffer) (resp []byte, err error) {
 	resp = bytes.Trim(resp, "\x00")
 
 	if len(resp) == 0 {
-		return resp, fmt.Errorf(`no response`)
+		return resp, fmt.Errorf(`command response nil`)
 	}
 	if rc := idtechRespCode(resp[0]); !rc.Ok() {
-		err = fmt.Errorf(`device command response %02d: %q`, rc, rc)
+		err = fmt.Errorf(`command response %02x: %q`, rc.Int(), rc)
 	}
 
 	st := bytes.IndexByte(resp, idtechSymStartOfText) + 1
