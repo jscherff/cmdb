@@ -24,27 +24,25 @@ import (
 )
 
 type TestData struct {
-	DevJSON map[string][]byte
-	InfJSON map[string][]byte
-	DevGen map[string]*usb.Generic
-	DevMag map[string]*usb.Magtek
-	DevIdt map[string]*usb.IDTech
-	InfSig map[string]map[string][32]byte
-	InfChg [][]string
+	Jsn map[string][]byte
+	Gen map[string]*usb.Generic
+	Mag map[string]*usb.Magtek
+	Idt map[string]*usb.IDTech
+	Sig map[string]map[string][32]byte
+	Chg [][]string
 	Clg []string
 }
 
 var (
 	td = &TestData{
 
-		DevJSON: make(map[string][]byte),
-		InfJSON: make(map[string][]byte),
+		Jsn: make(map[string][]byte),
 
-		DevGen: make(map[string]*usb.Generic),
-		DevMag: make(map[string]*usb.Magtek),
-		DevIdt: make(map[string]*usb.IDTech),
+		Gen: make(map[string]*usb.Generic),
+		Mag: make(map[string]*usb.Magtek),
+		Idt: make(map[string]*usb.IDTech),
 
-		InfSig: map[string]map[string][32]byte{
+		Sig: map[string]map[string][32]byte{
 			`CSV`:  make(map[string][32]byte),
 			`NVP`:  make(map[string][32]byte),
 			`XML`:  make(map[string][32]byte),
@@ -54,7 +52,7 @@ var (
 			`PJSN`: make(map[string][32]byte),
 		},
 
-		InfChg: [][]string{
+		Chg: [][]string{
 			[]string{`SoftwareID`, `21042840G01`, `21042840G02`},
 			[]string{`USBSpec`, `1.10`, `2.00`},
 		},
@@ -103,111 +101,105 @@ func main() {
 
 func generateSigs() error {
 
-	for k, d := range td.DevGen {
+	for k, d := range td.Gen {
 
-		i := d.GetInfo()
-
-		if b, err := i.CSV(); err != nil {
+		if b, err := d.CSV(); err != nil {
 			return err
 		} else {
-			td.InfSig[`CSV`][k] = sha256.Sum256(b)
+			td.Sig[`CSV`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.NVP(); err != nil {
+		if b, err := d.NVP(); err != nil {
 			return err
 		} else {
-			td.InfSig[`NVP`][k] = sha256.Sum256(b)
+			td.Sig[`NVP`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.XML(); err != nil {
+		if b, err := d.XML(); err != nil {
 			return err
 		} else {
-			td.InfSig[`XML`][k] = sha256.Sum256(b)
+			td.Sig[`XML`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.JSON(); err != nil {
+		if b, err := d.JSON(); err != nil {
 			return err
 		} else {
-			td.InfSig[`JSN`][k] = sha256.Sum256(b)
+			td.Sig[`JSN`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.PrettyXML(); err != nil {
+		if b, err := d.PrettyXML(); err != nil {
 			return err
 		} else {
-			td.InfSig[`PXML`][k] = sha256.Sum256(b)
+			td.Sig[`PXML`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.PrettyJSON(); err != nil {
+		if b, err := d.PrettyJSON(); err != nil {
 			return err
 		} else {
-			td.InfSig[`PJSN`][k] = sha256.Sum256(b)
+			td.Sig[`PJSN`][k] = sha256.Sum256(b)
 		}
 	}
 
-	for k, d := range td.DevMag {
+	for k, d := range td.Mag {
 
-		i := d.GetInfo()
-
-		if b, err := i.CSV(); err != nil {
+		if b, err := d.CSV(); err != nil {
 			return err
 		} else {
-			td.InfSig[`CSV`][k] = sha256.Sum256(b)
+			td.Sig[`CSV`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.NVP(); err != nil {
+		if b, err := d.NVP(); err != nil {
 			return err
 		} else {
-			td.InfSig[`NVP`][k] = sha256.Sum256(b)
+			td.Sig[`NVP`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.XML(); err != nil {
+		if b, err := d.XML(); err != nil {
 			return err
 		} else {
-			td.InfSig[`XML`][k] = sha256.Sum256(b)
+			td.Sig[`XML`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.JSON(); err != nil {
+		if b, err := d.JSON(); err != nil {
 			return err
 		} else {
-			td.InfSig[`JSN`][k] = sha256.Sum256(b)
+			td.Sig[`JSN`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.PrettyXML(); err != nil {
+		if b, err := d.PrettyXML(); err != nil {
 			return err
 		} else {
-			td.InfSig[`PXML`][k] = sha256.Sum256(b)
+			td.Sig[`PXML`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.PrettyJSON(); err != nil {
+		if b, err := d.PrettyJSON(); err != nil {
 			return err
 		} else {
-			td.InfSig[`PJSN`][k] = sha256.Sum256(b)
+			td.Sig[`PJSN`][k] = sha256.Sum256(b)
 		}
 	}
 
-	for k, d := range td.DevIdt {
+	for k, d := range td.Idt {
 
-		i := d.GetInfo()
-
-		if b, err := i.CSV(); err != nil {
+		if b, err := d.CSV(); err != nil {
 			return err
 		} else {
-			td.InfSig[`CSV`][k] = sha256.Sum256(b)
+			td.Sig[`CSV`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.NVP(); err != nil {
+		if b, err := d.NVP(); err != nil {
 			return err
 		} else {
-			td.InfSig[`NVP`][k] = sha256.Sum256(b)
+			td.Sig[`NVP`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.XML(); err != nil {
+		if b, err := d.XML(); err != nil {
 			return err
 		} else {
-			td.InfSig[`XML`][k] = sha256.Sum256(b)
+			td.Sig[`XML`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.JSON(); err != nil {
+		if b, err := d.JSON(); err != nil {
 			return err
 		} else {
-			td.InfSig[`JSN`][k] = sha256.Sum256(b)
+			td.Sig[`JSN`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.PrettyXML(); err != nil {
+		if b, err := d.PrettyXML(); err != nil {
 			return err
 		} else {
-			td.InfSig[`PXML`][k] = sha256.Sum256(b)
+			td.Sig[`PXML`][k] = sha256.Sum256(b)
 		}
-		if b, err := i.PrettyJSON(); err != nil {
+		if b, err := d.PrettyJSON(); err != nil {
 			return err
 		} else {
-			td.InfSig[`PJSN`][k] = sha256.Sum256(b)
+			td.Sig[`PJSN`][k] = sha256.Sum256(b)
 		}
 	}
 
@@ -216,54 +208,30 @@ func generateSigs() error {
 
 func generateJson() error {
 
-	for k, d := range td.DevGen {
+	for k, d := range td.Gen {
 
 		if b, err := json.Marshal(d); err != nil {
 			return err
 		} else {
-			td.DevJSON[k] = b
-		}
-
-		i := d.GetInfo()
-
-		if b, err := json.Marshal(i); err != nil {
-			return err
-		} else {
-			td.InfJSON[k] = b
+			td.Jsn[k] = b
 		}
 	}
 
-	for k, d := range td.DevMag {
+	for k, d := range td.Mag {
 
 		if b, err := json.Marshal(d); err != nil {
 			return err
 		} else {
-			td.DevJSON[k] = b
-		}
-
-		i := d.GetInfo()
-
-		if b, err := json.Marshal(i); err != nil {
-			return err
-		} else {
-			td.InfJSON[k] = b
+			td.Jsn[k] = b
 		}
 	}
 
-	for k, d := range td.DevIdt {
+	for k, d := range td.Idt {
 
 		if b, err := json.Marshal(d); err != nil {
 			return err
 		} else {
-			td.DevJSON[k] = b
-		}
-
-		i := d.GetInfo()
-
-		if b, err := json.Marshal(i); err != nil {
-			return err
-		} else {
-			td.InfJSON[k] = b
+			td.Jsn[k] = b
 		}
 	}
 
