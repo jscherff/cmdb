@@ -108,8 +108,8 @@ func (this *Device) GetInfo() (*usb.DeviceInfo) {
 	return this.DeviceInfo
 }
 
-// ControlSetReport performs a SetReport control transfer.
-func (this *Device) ControlSetReport(data []byte) (n int, err error) {
+// controlSetReport performs a SetReport control transfer.
+func (this *Device) controlSetReport(data []byte) (n int, err error) {
 
 	return this.Control(
 		ReqDirectionOut | ReqTypeClass | ReqRecipInterface,
@@ -120,8 +120,8 @@ func (this *Device) ControlSetReport(data []byte) (n int, err error) {
 	)
 }
 
-// ControlSetReport performs a SetReport control transfer.
-func (this *Device) ControlGetReport(data []byte) (n int, err error) {
+// controlSetReport performs a SetReport control transfer.
+func (this *Device) controlGetReport(data []byte) (n int, err error) {
 
 	return this.Control(
 		ReqDirectionIn | ReqTypeClass | ReqRecipInterface,

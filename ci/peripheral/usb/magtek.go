@@ -235,10 +235,10 @@ func (this *Magtek) Reset() (error) {
 	data := make([]byte, this.BufferSize)
 	data[0] = magtekCmdReset
 
-	if _, err := this.ControlSetReport(data); err != nil {
+	if _, err := this.controlSetReport(data); err != nil {
 		return err
 	}
-	if _, err := this.ControlGetReport(data); err != nil {
+	if _, err := this.controlGetReport(data); err != nil {
 		return err
 	}
 	if rc := magtekRespCode(data[0]); !rc.Ok() {
@@ -261,10 +261,10 @@ func (this *Magtek) getBufferSize() (n int, err error) {
 		data := make([]byte, n)
 		copy(data, []byte{magtekCmdGetProp, 0x01, magtekPropSoftwareID})
 
-		if _, err = this.ControlSetReport(data); err != nil {
+		if _, err = this.controlSetReport(data); err != nil {
 			continue
 		}
-		if _, err = this.ControlGetReport(data); err != nil {
+		if _, err = this.controlGetReport(data); err != nil {
 			continue
 		}
 
@@ -277,13 +277,17 @@ func (this *Magtek) getBufferSize() (n int, err error) {
 // getProperty retrieves a property from device NVRAM using low-level commands.
 func (this *Magtek) getProperty(p byte) (string, error) {
 
+	if this.BufferSize < 3 {
+		return fmt.Errorf(`buffer size %d < %d`, this.BufferSize, 3)
+	}
+
 	data := make([]byte, this.BufferSize)
 	copy(data, []byte{magtekCmdGetProp, 0x01, p})
 
-	if _, err := this.ControlSetReport(data); err != nil {
+	if _, err := this.controlSetReport(data); err != nil {
 		return ``, err
 	}
-	if _, err := this.ControlGetReport(data); err != nil {
+	if _, err := this.controlGetReport(data); err != nil {
 		return ``, err
 	}
 	if rc := magtekRespCode(data[0]); !rc.Ok() {
@@ -297,16 +301,22 @@ func (this *Magtek) getProperty(p byte) (string, error) {
 }
 
 // setProperty configures a property in device NVRAM using low-level commands.
-func (this *Magtek) setProperty(p byte, s string) (error) {
+func (this *Magtek) setProperty(p byte, v string) (error) {
+
+	vlen := len(v)
+
+	if this.BufferSize < vlen + 3 {
+		return fmt.Errorf(`buffer size %d < %d`, this.BufferSize, vlen)
+	}
 
 	data := make([]byte, this.BufferSize)
-	copy(data[0:], []byte{magtekCmdSetProp, byte(len(s)+1), p})
-	copy(data[3:], s)
+	copy(data[0:], []byte{magtekCmdSetProp, byte(vlen), p})
+	copy(data[3:], v)
 
-	if _, err := this.ControlSetReport(data); err != nil {
+	if _, err := this.controlSetReport(data); err != nil {
 		return err
 	}
-	if _, err := this.ControlGetReport(data); err != nil {
+	if _, err := this.controlGetReport(data); err != nil {
 		return err
 	}
 	if rc := magtekRespCode(data[0]); !rc.Ok() {

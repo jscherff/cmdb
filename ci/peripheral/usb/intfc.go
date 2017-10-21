@@ -12,10 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmdb
+package usb
+
+type Resetter interface {
+	Reset() (error)
+}
 
 type Identifier interface {
+	Resetter
 	ID() (string)
+	SN() (string)
 	VID() (string)
 	PID() (string)
 	Host() (string)
@@ -33,8 +39,22 @@ type Reporter interface {
 	PrettyJSON() ([]byte, error)
 }
 
-type Auditer interface {
+type Updater interface {
 	Identifier
+	GetVendorName() (string)
+	GetProductName() (string)
+	GetUSBClass() (string)
+	GetUSBSubClass() (string)
+	GetUSBProtocol() (string)
+	SetVendorName(string)
+	SetProductName(string)
+	SetUSBClass(string)
+	SetUSBSubClass(string)
+	SetUSBProtocol(string)
+}
+
+type Auditer interface {
+	Reporter
 	Save(string) (error)
 	RestoreFile(string) (error)
 	RestoreJSON([]byte) (error)
@@ -47,13 +67,12 @@ type Auditer interface {
 }
 
 type Serializer interface {
-	Identifier
+	Auditer
 	GetDeviceSN() (string, error)
 	SetDeviceSN(string) (error)
 	SetDefaultSN() (error)
 	EraseDeviceSN() (error)
 	Refresh() (error)
-	Reset() (error)
 }
 
 type FactorySerializer interface {

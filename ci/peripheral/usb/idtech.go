@@ -339,7 +339,7 @@ func (this *IDTech) sendCommand(cmd bytes.Buffer) (resp []byte, err error) {
 		if _, err := cmd.Read(buf); err == io.EOF {
 			break
 		}
-		if _, err = this.ControlSetReport(buf); err != nil {
+		if _, err = this.controlSetReport(buf); err != nil {
 			return resp, err
 		}
 	}
@@ -347,7 +347,7 @@ func (this *IDTech) sendCommand(cmd bytes.Buffer) (resp []byte, err error) {
 	time.Sleep(1 * time.Second)
 
 	for {
-		n, err := this.ControlGetReport(buf)
+		n, err := this.controlGetReport(buf)
 
 		if err != nil {
 			return resp, err
