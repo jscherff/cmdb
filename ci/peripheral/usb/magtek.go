@@ -278,7 +278,7 @@ func (this *Magtek) getBufferSize() (n int, err error) {
 func (this *Magtek) getProperty(p byte) (string, error) {
 
 	if this.BufferSize < 3 {
-		return fmt.Errorf(`buffer size %d < %d`, this.BufferSize, 3)
+		return ``, fmt.Errorf(`buffer size %d < %d`, this.BufferSize, 3)
 	}
 
 	data := make([]byte, this.BufferSize)
