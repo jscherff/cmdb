@@ -294,10 +294,10 @@ func (this *Magtek) getProperty(p byte) (string, error) {
 		return ``, fmt.Errorf(`command response %02x: %q`, rc.Int(), rc)
 	}
 	if data[1] > 0x00 {
-		data = data[2:int(data[1])+2]
+		return string(data[2:int(data[1])+2]), nil
 	}
 
-	return string(data), nil
+	return ``, nil
 }
 
 // setProperty configures a property in device NVRAM using low-level commands.
@@ -305,12 +305,12 @@ func (this *Magtek) setProperty(p byte, v string) (error) {
 
 	vlen := len(v)
 
-	if this.BufferSize < vlen + 3 {
+	if this.BufferSize < 3 + vlen {
 		return fmt.Errorf(`buffer size %d < %d`, this.BufferSize, vlen)
 	}
 
 	data := make([]byte, this.BufferSize)
-	copy(data[0:], []byte{magtekCmdSetProp, byte(vlen), p})
+	copy(data[0:], []byte{magtekCmdSetProp, byte(vlen + 1), p})
 	copy(data[3:], v)
 
 	if _, err := this.controlSetReport(data); err != nil {

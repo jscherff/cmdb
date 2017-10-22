@@ -41,50 +41,35 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-/*
-	if s, err := mdev.GetFactorySN(); err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(`SN:`, s)
-	}
 
-	if err := mdev.CopyFactorySN(7); err != nil {
-		fmt.Println(err)
-	} else {
-		mdev.Reset()
-	}
+	var idev interface{} = mdev
 
-	if err = mdev.SetFactorySN(`ABCDEFGHIJKLMNO`); err != nil {
-		fmt.Println(err)
-	} else {
-		mdev.Reset()
-	}
+	if d, ok := idev.(*usb.Magtek); ok {
 
-	if err = mdev.SetDeviceSN(`ABCDEFG`); err != nil {
-		fmt.Println(err)
-	} else {
-		mdev.Reset()
-	}
+		if err := d.EraseDeviceSN(); err != nil {
+			fmt.Println(err)
+		} else {
+			d.Reset()
+		}
 
-	fmt.Printf("VID = %T, PID = %T\n", mdev.Desc.Vendor, mdev.Desc.Product)
+		if b, err := d.PrettyJSON(); err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println(string(b))
+		}
 
-	if b, err := mdev.PrettyJSON(); err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(string(b))
-	}
+		if err := d.SetDeviceSN(`deadbeef`); err != nil {
+			fmt.Println(err)
+		} else {
+			d.Reset()
+		}
 
-	mdev.Save(mdev.ID() + `.json`)
-*/
-	if err := mdev.EraseDeviceSN(); err != nil {
-		fmt.Println(err)
-	} else {
-		mdev.Reset()
-	}
+		if b, err := d.PrettyJSON(); err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println(string(b))
+		}
 
-	if b, err := mdev.PrettyJSON(); err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(string(b))
+		d.Save(d.ID() + `.json`)
 	}
 }

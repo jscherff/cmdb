@@ -8,7 +8,7 @@
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or impliemdev.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
@@ -41,33 +41,25 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	if err := mdev.EraseDeviceSN(); err != nil {
+		fmt.Println(err)
+	} else {
+		mdev.Reset()
+	}
 /*
-	if s, err := mdev.GetFactorySN(); err != nil {
+	if b, err := mdev.PrettyJSON(); err != nil {
 		fmt.Println(err)
 	} else {
-		fmt.Println(`SN:`, s)
+		fmt.Println(string(b))
 	}
 
-	if err := mdev.CopyFactorySN(7); err != nil {
-		fmt.Println(err)
-	} else {
-		mdev.Reset()
-	}
-
-	if err = mdev.SetFactorySN(`ABCDEFGHIJKLMNO`); err != nil {
+	if err := mdev.SetDeviceSN(`deadbeef`); err != nil {
 		fmt.Println(err)
 	} else {
 		mdev.Reset()
 	}
-
-	if err = mdev.SetDeviceSN(`ABCDEFG`); err != nil {
-		fmt.Println(err)
-	} else {
-		mdev.Reset()
-	}
-
-	fmt.Printf("VID = %T, PID = %T\n", mdev.Desc.Vendor, mdev.Desc.Product)
-
+*/
 	if b, err := mdev.PrettyJSON(); err != nil {
 		fmt.Println(err)
 	} else {
@@ -75,16 +67,4 @@ func main() {
 	}
 
 	mdev.Save(mdev.ID() + `.json`)
-*/
-	if err := mdev.EraseDeviceSN(); err != nil {
-		fmt.Println(err)
-	} else {
-		mdev.Reset()
-	}
-
-	if b, err := mdev.PrettyJSON(); err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(string(b))
-	}
 }
