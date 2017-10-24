@@ -86,7 +86,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fho, err := os.Create(`testdata.json`)
+	fho, err := os.Create(`tdata.json`)
 
 	if err != nil {
 		log.Fatal(err)
