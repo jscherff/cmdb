@@ -216,7 +216,7 @@ func (this *IDTech) SetDeviceSN(v string) (error) {
 }
 
 // SetDefaultSN is a NOOP function to comply with the Serializer interface.
-func (this *IDTech) SetDefaultSN(v string) (error) {
+func (this *IDTech) SetDefaultSN() (error) {
 	return nil
 }
 
