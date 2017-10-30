@@ -50,7 +50,7 @@ func main() {
 
 	mdev.Save(mdev.ID() + `.json`)
 
-	if state, err := mdev.GetReaderState(); err != nil {
+	if state, err := mdev.GetDeviceState(); err != nil {
 		fmt.Println(err)
 	} else {
 		fmt.Println(state)

@@ -51,6 +51,100 @@ const (
 
 var magtekBufferSizes = []int{24, 60}
 
+// DeviceState is a two-byte representation of the devices current and antecedent
+// operating state.
+type DeviceState []byte
+
+// String implements the Stringer interface for DeviceState.
+func (this DeviceState) String() string {
+
+	if len(this) < 2 {
+		return `Missing or malformed device state`
+	}
+
+	var state, sdesc, antec, adesc string
+
+	switch this[0] {
+
+	case 0x00:
+		state =	`WaitActAuth`
+		sdesc =	`Waiting for Activate Authenticated Mode. The reader requires ` +
+			`Authentication Before swipes are accepted.`
+
+	case 0x01:
+		state =	`WaitActRply`
+		sdesc =	`Waiting for Activation Challenge Reply. Activation has been started, ` +
+			`the reader is waiting for the Activation Challenge Reply command.`
+
+	case 0x02:
+		state =	`WaitSwipe`
+		sdesc =	`Waiting for Swipe. The reader is waiting for the user to Swipe a card.`
+
+	case 0x03:
+		state =	`WaitDelay`
+		sdesc =	`Waiting for Anti-Hacking Timer. Two or more previous attempts to ` +
+			`Authenticate failed, the reader is waiting for the Anti-Hacking timer ` +
+			`to expire before it accepts further Activate Authenticated Mode commands.`
+	default:
+		state = `Undefined`
+		sdesc = fmt.Sprintf(`Antecedent '%02x' not defined`, this[1])
+	}
+
+	switch this[1] {
+
+	case 0x00:
+		antec =	`PU`
+		adesc =	`Just Powered Up. The reader has had no swipes and has not been ` +
+			`Authenticated since it was powered up.`
+
+	case 0x01:
+		antec =	`GoodAuth`
+		adesc =	`Authentication Activation Successful. The reader processed a valid ` +
+			`Activation Challenge Reply command`
+
+	case 0x02:
+		antec =	`GoodSwipe`
+		adesc =	`Good Swipe. The user swiped a valid card correctly.`
+
+	case 0x03:
+		antec =	`BadSwipe`
+		adesc =	`Bad Swipe. The user swiped a card incorrectly or the card is not valid.`
+
+	case 0x04:
+		antec =	`FailAuth`
+		adesc =	`Authentication Activation Failed. The most recent Activation Challenge ` +
+			`Reply command failed.`
+
+	case 0x05:
+		antec =	`FailDeact`
+		adesc =	`Authentication Deactivation Failed. A recent Deactivate Authenticated ` +
+			`Mode command failed.`
+
+	case 0x06:
+		antec = `TOAuth`
+		adesc = `Authentication Activation Timed Out. The Host failed to send an Activation ` +
+			`Challenge Reply command in the time period specified in the Activate ` +
+			`Authentication Mode command.`
+
+	case 0x07:
+		antec = `TOSwipe`
+		adesc = `Swipe Timed Out. The user failed to swipe a card in the time period ` +
+			`specified in the Activation Challenge Reply command.`
+
+	case 0x08:
+		antec = `KeySyncError`
+		adesc = `Key Sync Error. The keys between the MagneSafe processor and the Encrypting ` +
+			`IntelliHead are not the same and must be re-loaded before correct operation ` +
+			`can resume.`
+
+	default:
+		antec = `Unknown`
+		adesc = fmt.Sprintf(`Antecedent '%02x' not defined`, this[1])
+	}
+
+	return fmt.Sprintf("Device State: %s/%s. '%[1]s' = %[3]s '%[2]s' = %[4]s", state, antec, sdesc, adesc)
+}
+
 // magtekRespCode represents the response code from control transfer
 // vendor commands.
 type magtekRespCode uint8
@@ -230,23 +324,23 @@ func (this *Magtek) CopyFactorySN(n int) (error) {
 	}
 }
 
-// GetReaderState retrieves the state of the reader from supported devices.
-func (this *Magtek) GetReaderState() ([]byte, error) {
+// GetDeviceState retrieves the state of the reader from supported devices.
+func (this *Magtek) GetDeviceState() (string, error) {
 
 	data := make([]byte, this.BufferSize)
 	data[0] = magtekCmdGetState
 
 	if _, err := this.controlSetReport(data); err != nil {
-		return data, err
+		return ``, err
 	}
 	if _, err := this.controlGetReport(data); err != nil {
-		return data, err
+		return ``, err
 	}
 	if rc := magtekRespCode(data[0]); !rc.Ok() {
-		return data, fmt.Errorf(`command response %02x: %q`, rc.Int(), rc)
+		return ``, fmt.Errorf(`command response %02x: %q`, rc.Int(), rc)
 	}
 
-	return data, nil
+	return DeviceState(data[2:2+data[1]]).String(), nil
 }
 
 // Reset overides inherited Reset method with a low-level vendor reset.
