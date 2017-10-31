@@ -23,7 +23,7 @@ func (this *DeviceInfo) SetVendorID(s string) {
 func (this *DeviceInfo) SetProductID(s string) {
 	this.ProductID = s
 }
-func (this *DeviceInfo) SetSerialNumber(s string) {
+func (this *DeviceInfo) SetSerialNum(s string) {
 	this.SerialNum = s
 }
 func (this *DeviceInfo) SetVendorName(s string) {

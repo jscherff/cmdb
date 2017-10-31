@@ -103,6 +103,16 @@ func NewDevice(i interface{}) (this *Device, err error) {
 	return this, nil
 }
 
+// Zero replaces DeviceInfo with a new, empty DeviceInfo.
+func (this *Device) Zero() {
+	this.DeviceInfo = &usb.DeviceInfo{}
+}
+
+// Clone returns an empty instance of the device as an interface type.
+func (this *Device) Clone() (interface{}) {
+	return interface{}(new(Device))
+}
+
 // GetInfo detaches and returns just the DeviceInfo object.
 func (this *Device) GetInfo() (*usb.DeviceInfo) {
 	return this.DeviceInfo

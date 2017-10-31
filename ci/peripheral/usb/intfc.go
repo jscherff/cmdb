@@ -29,6 +29,11 @@ type Identifier interface {
 	Conn() (string)
 }
 
+type Analyzer interface {
+	Identifier
+	GetDeviceState() (string, error)
+}
+
 type Reporter interface {
 	Identifier
 	CSV() ([]byte, error)
@@ -55,6 +60,8 @@ type Updater interface {
 
 type Auditer interface {
 	Reporter
+	Zero()
+	Clone() (interface{})
 	Save(string) (error)
 	RestoreFile(string) (error)
 	RestoreJSON([]byte) (error)

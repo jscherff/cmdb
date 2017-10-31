@@ -23,7 +23,7 @@ func (this *DeviceInfo) GetVendorID() (string) {
 func (this *DeviceInfo) GetProductID() (string) {
 	return this.ProductID
 }
-func (this *DeviceInfo) GetSerialNumber() (string) {
+func (this *DeviceInfo) GetSerialNum() (string) {
 	return this.SerialNum
 }
 func (this *DeviceInfo) GetVendorName() (string) {
