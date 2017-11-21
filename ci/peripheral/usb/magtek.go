@@ -324,8 +324,8 @@ func (this *Magtek) CopyFactorySN(n int) (error) {
 	}
 }
 
-// GetDeviceState retrieves the state of the reader from supported devices.
-func (this *Magtek) GetDeviceState() (string, error) {
+// GetState retrieves the state of the reader from supported devices.
+func (this *Magtek) GetState() (string, error) {
 
 	data := make([]byte, this.BufferSize)
 	data[0] = magtekCmdGetState

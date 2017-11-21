@@ -31,7 +31,7 @@ type Identifier interface {
 
 type Analyzer interface {
 	Identifier
-	GetDeviceState() (string, error)
+	GetState() (string, error)
 }
 
 type Reporter interface {
