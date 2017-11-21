@@ -18,7 +18,7 @@ import (
 	`fmt`
 
 	`github.com/google/gousb`
-	`github.com/jscherff/cmdb/metaci/peripheral/usb`
+	`github.com/jscherff/cmdb/meta/peripheral/usb`
 )
 
 const (
