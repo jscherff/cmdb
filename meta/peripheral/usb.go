@@ -161,6 +161,11 @@ func NewUsb(cf string) (this *Usb, err error) {
 	return this, nil
 }
 
+// LastUpdate returns the date the metadata was last updated from source.
+func (this *Usb) LastUpdate() (time.Time) {
+	return this.Updated
+}
+
 // GetVendor returns the USB vendor associated with a vendor ID.
 func (this *Usb) GetVendor(vid string) (*Vendor, error) {
 
