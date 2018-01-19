@@ -58,8 +58,8 @@ var (
 		},
 
 		Clg: []string{
-			`"SoftwareID" was "21042840G01", now "21042840G02"`,
-			`"USBSpec" was "1.10", now "2.00"`,
+			`'SoftwareID' was '21042840G01', now '21042840G02'`,
+			`'USBSpec' was '1.10', now '2.00'`,
 		},
 	}
 )
